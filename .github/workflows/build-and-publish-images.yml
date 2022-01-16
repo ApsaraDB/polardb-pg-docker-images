@@ -38,10 +38,10 @@ jobs:
         name: Build docker image for PolarDB
         run: |
           docker build --network=host                                   \
-              -t mrdrivingduck/polardb_pg:${{ matrix.container_image }} \
+              -t mrdrivingduck/polardb_pg_devel:${{ matrix.container_image }} \
               -f Dockerfile-${{ matrix.container_image }} .
 
       # Publish
       -
         name: Push to registry
-        run: docker push
+        run: docker push mrdrivingduck/polardb_pg_devel:${{ matrix.container_image }}
