@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+  # trigger testing manually
+  workflow_dispatch:
 
 jobs:
   build-and-publish-image:
@@ -37,7 +39,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: mrdrivingduck/polardb_pg_devel:${{ matrix.base_image }}
+          tags: polardb/polardb_pg_devel:${{ matrix.base_image }}
           file: Dockerfile-${{ matrix.base_image }}
           network: "host"
           platforms: linux/amd64,linux/arm64
