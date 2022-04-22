@@ -35,6 +35,19 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       -
+        if: ${{ matrix.base_image == 'centos7' }}
+        name: Build and push with 'latest'
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          tags: |
+            polardb/polardb_pg_devel:${{ matrix.base_image }}
+            polardb/polardb_pg_devel:latest
+          file: Dockerfile-${{ matrix.base_image }}
+          network: "host"
+          platforms: linux/amd64, linux/arm64
+      -
+        if: ${{ matrix.base_image != 'centos7' }}
         name: Build and push
         uses: docker/build-push-action@v2
         with:
@@ -42,4 +55,4 @@ jobs:
           tags: polardb/polardb_pg_devel:${{ matrix.base_image }}
           file: Dockerfile-${{ matrix.base_image }}
           network: "host"
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64, linux/arm64
