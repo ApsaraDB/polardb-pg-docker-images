@@ -22,8 +22,22 @@ RUN yum install -y devtoolset-9-gcc devtoolset-9-gcc-c++ devtoolset-9-gdb devtoo
 RUN yum install -y libicu-devel pam-devel readline-devel libxml2-devel libxslt-devel openldap-devel openldap-clients openldap-servers libuuid-devel xerces-c-devel bison flex gettext tcl-devel python-devel perl-IPC-Run perl-Expect perl-Test-Simple perl-DBD-Pg perl-ExtUtils-Embed perl-ExtUtils-MakeMaker zlib-devel krb5-devel krb5-workstation krb5-server protobuf-devel && \
     ln /usr/lib64/perl5/CORE/libperl.so /usr/lib64/libperl.so
 
-# tools
-RUN yum install -y git lcov psmisc sudo vim
+# install basic tools
+RUN echo "install basic tools" && \
+    yum install -y \
+        git lcov psmisc sudo vim \
+        less  \
+        net-tools  \
+        python2-psycopg2 \
+        python2-requests  \
+        tar  \
+        shadow-utils \
+        which  \
+        binutils\
+        libtool \
+        perf  \
+        make sudo \
+        util-linux
 
 # set to empty if GitHub is not barriered
 # ENV GITHUB_PROXY=https://ghproxy.com/
