@@ -1,0 +1,25 @@
+FROM polardb/polardb_pg_devel AS building
+
+LABEL maintainer="mrdrivingduck@gmail.com"
+
+RUN git clone -b POLARDB_11_STABLE https://github.com/ApsaraDB/PolarDB-for-PostgreSQL.git
+
+RUN cd PolarDB-for-PostgreSQL && \
+    source /etc/bashrc && \
+    ./polardb_build.sh && \
+    ~/tmp_basedir_polardb_pg_1100_bld/bin/pg_ctl -D ~/tmp_master_dir_polardb_pg_1100_bld stop
+
+FROM polardb/polardb_pg_devel
+
+LABEL maintainer="mrdrivingduck@gmail.com"
+
+COPY --from=building /home/postgres/tmp_basedir_polardb_pg_1100_bld/ /home/postgres/tmp_basedir_polardb_pg_1100_bld/
+COPY --from=building /home/postgres/tmp_datadir_polardb_pg_1100_bld/ /home/postgres/tmp_datadir_polardb_pg_1100_bld/
+COPY --from=building /home/postgres/tmp_master_dir_polardb_pg_1100_bld/ /home/postgres/tmp_master_dir_polardb_pg_1100_bld/
+
+RUN sudo chown -R postgres:postgres /home/postgres/tmp_*
+RUN sudo chmod -R 700 /home/postgres/tmp_*
+
+ENTRYPOINT \
+    ~/tmp_basedir_polardb_pg_1100_bld/bin/pg_ctl -D ~/tmp_master_dir_polardb_pg_1100_bld start && \
+    bash

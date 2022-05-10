@@ -1,4 +1,4 @@
-name: build and publish docker images
+name: build and publish images
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-publish-image:
+  build-and-publish-dev-image:
     runs-on: ubuntu-latest
 
     strategy:
@@ -34,25 +34,65 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+      # build devel images (centos7 is the latest tag)
       -
         if: ${{ matrix.base_image == 'centos7' }}
-        name: Build and push with 'latest'
-        uses: docker/build-push-action@v2
+        name: Build and push development image with 'latest' tag
+        uses: docker/build-push-action@v3
         with:
           push: true
+          file: Dockerfile-devel-${{ matrix.base_image }}
+          network: "host"
           tags: |
             polardb/polardb_pg_devel:${{ matrix.base_image }}
             polardb/polardb_pg_devel:latest
-          file: Dockerfile-${{ matrix.base_image }}
-          network: "host"
           platforms: linux/amd64, linux/arm64
+      # build devel images (other distributions)
       -
         if: ${{ matrix.base_image != 'centos7' }}
-        name: Build and push
-        uses: docker/build-push-action@v2
+        name: Build and push other development images
+        uses: docker/build-push-action@v3
         with:
           push: true
-          tags: polardb/polardb_pg_devel:${{ matrix.base_image }}
-          file: Dockerfile-${{ matrix.base_image }}
+          file: Dockerfile-devel-${{ matrix.base_image }}
           network: "host"
+          tags: polardb/polardb_pg_devel:${{ matrix.base_image }}
+          platforms: linux/amd64, linux/arm64
+  
+  build-and-publish-instance-image:
+    runs-on: ubuntu-latest
+    needs: build-and-publish-dev-image
+
+    strategy:
+      matrix:
+        instance_type: [ single, withrep, htap ]
+
+    steps:
+
+      # Checkout source code
+      -
+        uses: actions/checkout@v2
+
+      # Environment preparation
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      -
+        name: Login to DockerHub
+        uses: docker/login-action@v1 
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      # build instance images
+      -
+        name: Build and push instance image
+        uses: docker/build-push-action@v3
+        with:
+          push: true
+          file: Dockerfile-local-instance-${{ matrix.instance_type }}
+          network: "host"
+          tags: polardb/polardb_pg_local_instance:${{ matrix.instance_type }}
           platforms: linux/amd64, linux/arm64
