@@ -1,0 +1,4 @@
+[submodule "PolarDB-for-PostgreSQL"]
+	path = PolarDB-for-PostgreSQL
+	url = https://github.com/ApsaraDB/PolarDB-for-PostgreSQL.git
+	branch = POLARDB_11_STABLE
