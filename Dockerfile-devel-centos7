@@ -39,6 +39,9 @@ RUN echo "install basic tools" && \
         make sudo \
         util-linux
 
+# add software repository of Node.js LTS
+# @see https://github.com/nodesource/distributions
+RUN curl -fsSL https://rpm.nodesource.com/setup_lts.x | bash -
 # use yarn for documentation development
 RUN curl -sL https://dl.yarnpkg.com/rpm/yarn.repo | tee /etc/yum.repos.d/yarn.repo && \
     yum install -y yarn
