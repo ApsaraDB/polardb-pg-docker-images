@@ -39,6 +39,10 @@ RUN echo "install basic tools" && \
         make sudo \
         util-linux
 
+# use yarn for documentation development
+RUN curl -sL https://dl.yarnpkg.com/rpm/yarn.repo | tee /etc/yum.repos.d/yarn.repo && \
+    yum install -y yarn
+
 # set to empty if GitHub is not barriered
 # ENV GITHUB_PROXY=https://ghproxy.com/
 ENV GITHUB_PROXY=
