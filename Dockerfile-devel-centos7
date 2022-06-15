@@ -1,3 +1,95 @@
+###################################################################################
+#
+# Image for source code building dependencies
+#
+###################################################################################
+
+FROM centos:centos7 AS building
+
+LABEL maintainer="mrdrivingduck@gmail.com"
+
+CMD bash
+
+# avoid missing locale problem
+RUN sed -i 's/override_install_langs/# &/' /etc/yum.conf
+
+# add EPEL and scl source
+RUN rpmkeys --import file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7 && \
+    yum install -y epel-release centos-release-scl && \
+    rpmkeys --import file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7 && \
+    rpmkeys --import file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-SIG-SCLo && \
+    yum update -y
+
+# GCC and LLVM
+RUN yum install -y \
+        devtoolset-9-gcc \
+        devtoolset-9-gcc-c++ \
+        devtoolset-9-gdb \
+        devtoolset-9-libstdc++-devel \
+        devtoolset-9-make \
+        llvm-toolset-7.0-llvm-devel \
+        llvm-toolset-7.0-clang-devel \
+        llvm-toolset-7.0-cmake
+
+# dependencies
+RUN yum install -y \
+        perl-IPC-Run \
+        perl-Expect \
+        perl-Test-Simple \
+        perl-DBD-Pg \
+        perl-ExtUtils-Embed \
+        perl-ExtUtils-MakeMaker && \
+    ln /usr/lib64/perl5/CORE/libperl.so /usr/lib64/libperl.so
+
+# set to empty if GitHub is not barriered
+# ENV GITHUB_PROXY=https://ghproxy.com/
+ENV GITHUB_PROXY=
+
+ENV ZLOG_VERSION=1.2.14
+ENV OPENSSL_VERSION=OpenSSL_1_1_1k
+ENV PFSD_VERSION=pfsd4pg-release-1.2.41-20211018
+
+# install dependencies from GitHub mirror
+RUN yum install -y libaio-devel wget && \
+    cd /usr/local && \
+    # zlog for PFSD
+    wget --no-verbose --no-check-certificate "${GITHUB_PROXY}https://github.com/HardySimpson/zlog/archive/refs/tags/${ZLOG_VERSION}.tar.gz" && \
+    # PFSD
+    wget --no-verbose --no-check-certificate "${GITHUB_PROXY}https://github.com/ApsaraDB/PolarDB-FileSystem/archive/refs/tags/${PFSD_VERSION}.tar.gz" && \
+    # OpenSSL 1.1.1
+    wget --no-verbose --no-check-certificate "${GITHUB_PROXY}https://github.com/openssl/openssl/archive/refs/tags/${OPENSSL_VERSION}.tar.gz" && \
+    # enable build tools
+    echo "source /opt/rh/devtoolset-9/enable" >> /etc/bashrc && \
+    echo "source /opt/rh/llvm-toolset-7.0/enable" >> /etc/bashrc && \
+    source /etc/bashrc && \
+    # unzip and install zlog
+    gzip -d $ZLOG_VERSION.tar.gz && \
+    tar xpf $ZLOG_VERSION.tar && \
+    cd zlog-$ZLOG_VERSION && \
+    make && make install && \
+    echo '/usr/local/lib' >> /etc/ld.so.conf && ldconfig && \
+    cd .. && \
+    # unzip and install PFSD
+    gzip -d $PFSD_VERSION.tar.gz && \
+    tar xpf $PFSD_VERSION.tar && \
+    cd PolarDB-FileSystem-$PFSD_VERSION && \
+    ./autobuild.sh && ./install.sh && \
+    cd .. && \
+    # unzip and install OpenSSL 1.1.1
+    gzip -d $OPENSSL_VERSION.tar.gz && \
+    tar xpf $OPENSSL_VERSION.tar && \
+    cd /usr/local/openssl-$OPENSSL_VERSION && \
+    ./config --prefix=/usr/local/openssl && make -j8 && make install && \
+    cp /usr/local/openssl/lib/lib* /usr/local/lib/ && \
+    cp -r /usr/local/openssl/include/openssl /usr/local/include/ && \
+    ldconfig
+
+###################################################################################
+#
+# Real image building
+#
+###################################################################################
+
 FROM centos:centos7
 
 LABEL maintainer="mrdrivingduck@gmail.com"
@@ -15,16 +107,49 @@ RUN rpmkeys --import file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7 && \
     yum update -y
 
 # GCC and LLVM
-RUN yum install -y devtoolset-9-gcc devtoolset-9-gcc-c++ devtoolset-9-gdb devtoolset-9-libstdc++-devel devtoolset-9-make && \
-    yum install -y llvm-toolset-7.0-llvm-devel llvm-toolset-7.0-clang-devel llvm-toolset-7.0-cmake
+RUN yum install -y \
+        devtoolset-9-gcc \
+        devtoolset-9-gcc-c++ \
+        devtoolset-9-gdb \
+        devtoolset-9-libstdc++-devel \
+        devtoolset-9-make \
+        llvm-toolset-7.0-llvm-devel \
+        llvm-toolset-7.0-clang-devel \
+        llvm-toolset-7.0-cmake
 
 # dependencies
-RUN yum install -y libicu-devel pam-devel readline-devel libxml2-devel libxslt-devel openldap-devel openldap-clients openldap-servers libuuid-devel xerces-c-devel bison flex gettext tcl-devel python-devel perl-IPC-Run perl-Expect perl-Test-Simple perl-DBD-Pg perl-ExtUtils-Embed perl-ExtUtils-MakeMaker zlib-devel krb5-devel krb5-workstation krb5-server protobuf-devel && \
+RUN yum install -y \
+        libicu-devel \
+        pam-devel \
+        readline-devel \
+        libxml2-devel \
+        libxslt-devel \
+        openldap-devel \
+        openldap-clients \
+        openldap-servers \
+        libuuid-devel \
+        xerces-c-devel \
+        bison \
+        flex \
+        gettext \
+        tcl-devel \
+        python-devel \
+        perl-IPC-Run \
+        perl-Expect \
+        perl-Test-Simple \
+        perl-DBD-Pg \
+        perl-ExtUtils-Embed \
+        perl-ExtUtils-MakeMaker \
+        zlib-devel \
+        krb5-devel \
+        krb5-workstation \
+        krb5-server \
+        protobuf-devel \
+        libaio-devel && \
     ln /usr/lib64/perl5/CORE/libperl.so /usr/lib64/libperl.so
 
 # install basic tools
-RUN echo "install basic tools" && \
-    yum install -y \
+RUN yum install -y \
         git lcov psmisc sudo vim \
         less  \
         net-tools  \
@@ -46,64 +171,35 @@ RUN curl -fsSL https://rpm.nodesource.com/setup_lts.x | bash -
 RUN curl -sL https://dl.yarnpkg.com/rpm/yarn.repo | tee /etc/yum.repos.d/yarn.repo && \
     yum install -y yarn
 
-# set to empty if GitHub is not barriered
-# ENV GITHUB_PROXY=https://ghproxy.com/
-ENV GITHUB_PROXY=
+COPY --from=building /usr/local/bin /usr/local/bin
+COPY --from=building /usr/local/include /usr/local/include
+COPY --from=building /usr/local/lib /usr/local/lib
+COPY --from=building /usr/local/polarstore /usr/local/polarstore
+COPY --from=building /etc/init.d/pfsd_env /etc/init.d/pfsd_env
+COPY --from=building /etc/polarfs.conf /etc/polarfs.conf
 
-ENV OPENSSL_VERSION=OpenSSL_1_1_1k
-
-# install dependencies from GitHub mirror
-RUN yum install -y libaio-devel wget && \
-    cd /usr/local && \
-    # zlog for PFSD
-    wget --no-verbose --no-check-certificate "${GITHUB_PROXY}https://github.com/HardySimpson/zlog/archive/refs/tags/1.2.14.tar.gz" && \
-    # PFSD
-    wget --no-verbose --no-check-certificate "${GITHUB_PROXY}https://github.com/ApsaraDB/PolarDB-FileSystem/archive/refs/tags/pfsd4pg-release-1.2.41-20211018.tar.gz" && \
-    # OpenSSL 1.1.1
-    wget --no-verbose --no-check-certificate "${GITHUB_PROXY}https://github.com/openssl/openssl/archive/refs/tags/${OPENSSL_VERSION}.tar.gz" && \
-    # enable build tools
-    echo "source /opt/rh/devtoolset-9/enable" >> /etc/bashrc && \
+RUN echo "source /opt/rh/devtoolset-9/enable" >> /etc/bashrc && \
     echo "source /opt/rh/llvm-toolset-7.0/enable" >> /etc/bashrc && \
     source /etc/bashrc && \
-    # unzip and install zlog
-    tar -zxf 1.2.14.tar.gz && \
-    cd zlog-1.2.14 && \
-    make && make install && \
-    echo '/usr/local/lib' >> /etc/ld.so.conf && ldconfig && \
-    cd .. && \
-    rm 1.2.14.tar.gz && \
-    rm -rf zlog-1.2.14 && \
-    # unzip and install PFSD
-    tar -zxf pfsd4pg-release-1.2.41-20211018.tar.gz && \
-    cd PolarDB-FileSystem-pfsd4pg-release-1.2.41-20211018 && \
-    ./autobuild.sh && ./install.sh && \
-    cd .. && \
-    rm pfsd4pg-release-1.2.41-20211018.tar.gz && \
-    rm -rf PolarDB-FileSystem-pfsd4pg-release-1.2.41-20211018 && \
-    # unzip and install OpenSSL 1.1.1
-    tar -zxf $OPENSSL_VERSION.tar.gz && \
-    cd /usr/local/openssl-$OPENSSL_VERSION && \
-    ./config --prefix=/usr/local/openssl && make -j64 && make install && \
-    cp /usr/local/openssl/lib/libcrypto.so.1.1 /usr/lib64/ && \
-    cp /usr/local/openssl/lib/libssl.so.1.1 /usr/lib64/ && \
-    cp -r /usr/local/openssl/include/openssl /usr/include/ && \
-    ln -sf /usr/lib64/libcrypto.so.1.1 /usr/lib64/libcrypto.so && \
-    ln -sf /usr/lib64/libssl.so.1.1 /usr/lib64/libssl.so && \
-    rm -f /usr/local/$OPENSSL_VERSION.tar.gz && \
-    rm -rf /usr/local/openssl-$OPENSSL_VERSION
+    echo '/usr/local/lib' >> /etc/ld.so.conf && ldconfig
 
 # create default user
 ENV USER_NAME=postgres
 RUN echo "create default user" && \
-    groupadd -r $USER_NAME && useradd -g $USER_NAME $USER_NAME -p '' && \
+    groupadd -r $USER_NAME && \
+    useradd -g $USER_NAME $USER_NAME -p '' && \
     usermod -aG wheel $USER_NAME
 
 WORKDIR /home/$USER_NAME
 
 # modify conf
 RUN echo "modify conf" && \
-    mkdir -p /run/pfs && chown $USER_NAME /run/pfs && \
     mkdir -p /var/log/pfs && chown $USER_NAME /var/log/pfs && \
+    mkdir -p /var/run/pfs && chown $USER_NAME /var/run/pfs && \
+    mkdir -p /var/run/pfsd && chown $USER_NAME /var/run/pfsd && \
+    mkdir -p /dev/shm/pfsd && chown $USER_NAME /dev/shm/pfsd && \
+    touch /var/run/pfsd/.pfsd && \
+    chkconfig --add pfsd_env && \
     echo "ulimit -c unlimited" >> /home/postgres/.bashrc && \
     echo "export PATH=/home/postgres/tmp_basedir_polardb_pg_1100_bld/bin:\$PATH" >> /home/postgres/.bashrc && \
     echo "alias pg='psql -h /home/postgres/tmp_master_dir_polardb_pg_1100_bld/'" >> /home/postgres/.bashrc && \
