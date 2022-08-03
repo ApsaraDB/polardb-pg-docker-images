@@ -41,6 +41,9 @@ RUN yum install -y \
         perl-ExtUtils-MakeMaker && \
     ln /usr/lib64/perl5/CORE/libperl.so /usr/lib64/libperl.so
 
+RUN yum install -y \
+        libaio-devel wget
+
 # set to empty if GitHub is not barriered
 # ENV GITHUB_PROXY=https://ghproxy.com/
 ENV GITHUB_PROXY=
@@ -50,8 +53,7 @@ ENV OPENSSL_VERSION=OpenSSL_1_1_1k
 ENV PFSD_VERSION=pfsd4pg-release-1.2.41-20211018
 
 # install dependencies from GitHub mirror
-RUN yum install -y libaio-devel wget && \
-    cd /usr/local && \
+RUN cd /usr/local && \
     # zlog for PFSD
     wget --no-verbose --no-check-certificate "${GITHUB_PROXY}https://github.com/HardySimpson/zlog/archive/refs/tags/${ZLOG_VERSION}.tar.gz" && \
     # PFSD
@@ -162,6 +164,7 @@ RUN yum install -y \
         libtool \
         perf  \
         make sudo \
+        wget \
         util-linux
 
 # add software repository of Node.js LTS
