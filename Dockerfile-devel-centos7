@@ -111,6 +111,7 @@ RUN cd /usr/local && \
     gzip -d $PFSD_VERSION.tar.gz && \
     tar xpf $PFSD_VERSION.tar && \
     cd PolarDB-FileSystem-$PFSD_VERSION && \
+    sed -i 's/-march=native //' CMakeLists.txt && \
     ./autobuild.sh && ./install.sh && \
     cd .. && \
     rm -rf $PFSD_VERSION* && \
