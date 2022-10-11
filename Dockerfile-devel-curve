@@ -1,0 +1,248 @@
+FROM centos:7 as fiu
+LABEL maintainer="Cyber-SiKu <Cyber-SiKu@outloook.com>"
+RUN yum install -y \
+    centos-release-scl \
+    centos-release-scl-rh&& \
+    yum update -y && \
+    yum clean all
+ADD https://curve-build.nos-eastchina1.126.net/libfiu-1.00.tar.gz /
+RUN yum install -y \
+    devtoolset-9-gcc \
+    devtoolset-9-gcc-c++ \
+    devtoolset-9-libstdc++-devel \
+    devtoolset-9-make \
+    python3 && \
+    echo "source /opt/rh/devtoolset-9/enable" >> /etc/bashrc && \
+    source /etc/bashrc && \
+    tar -xzvf libfiu-1.00.tar.gz && rm libfiu-1.00.tar.gz && \
+    cd libfiu-1.00 && \
+    make && make install
+
+FROM centos:7 AS curve-builder
+LABEL maintainer="Cyber-SiKu <Cyber-SiKu@outloook.com>"
+COPY --from=fiu /usr/local/include/fiu*.h /usr/include/
+COPY --from=fiu /usr/local/lib/ /usr/lib
+ARG TARGETARCH
+RUN yum install -y \
+    wget \
+    patch \
+    zlib-devel \
+    openssl-devel \
+    libuuid-devel \
+    libnl3-devel \
+    libcurl-devel \
+    python3-devel \
+    python3-setuptools \
+    python3-wheel \
+    libunwind-devel \
+    fuse3-devel \
+    sudo \
+    lz4-devel \
+    snappy-devel \
+    centos-release-scl \
+    centos-release-scl-rh \
+    which && \
+    if [ "$TARGETARCH" = "amd64" ]; then \
+    OCI_ARCH=x86_64; \
+    elif [ "$TARGETARCH" = "arm64" ]; then \
+    OCI_ARCH=aarch64; \
+    else \
+    OCI_ARCH=x86_64; \
+    fi && \
+    wget https://curve-build.nos-eastchina1.126.net/bazelbuild/bazelisk/bazelisk-linux-${OCI_ARCH} && \
+    mv bazelisk-linux-${OCI_ARCH} /usr/bin/bazelisk && \
+    ln -s /usr/bin/bazelisk /usr/bin/bazel && \
+    wget https://curve-build.nos-eastchina1.126.net/bazelbuild/4.2.2/bazel-4.2.2-linux-${OCI_ARCH} && \
+    mkdir -p /root/.cache/bazelisk/downloads/bazelbuild/bazel-4.2.2-linux-${OCI_ARCH}/bin && \
+    mv bazel-4.2.2-linux-${OCI_ARCH} /root/.cache/bazelisk/downloads/bazelbuild/bazel-4.2.2-linux-${OCI_ARCH}/bin/bazel && \
+    wget https://curve-build.nos-eastchina1.126.net/bazelbuild/0.17.2/bazel-0.17.2-linux-${OCI_ARCH} && \
+    mkdir -p /root/.cache/bazelisk/downloads/bazelbuild/bazel-0.17.2-linux-${OCI_ARCH}/bin && \
+    mv bazel-0.17.2-linux-${OCI_ARCH} /root/.cache/bazelisk/downloads/bazelbuild/bazel-0.17.2-linux-${OCI_ARCH}/bin/bazel && \
+    chmod +x /root/.cache/bazelisk/downloads/bazelbuild/bazel-4.2.2-linux-${OCI_ARCH}/bin/bazel /root/.cache/bazelisk/downloads/bazelbuild/bazel-0.17.2-linux-${OCI_ARCH}/bin/bazel /usr/bin/bazel /usr/bin/bazelisk && \
+    yum install -y \
+    devtoolset-9-gcc \
+    devtoolset-9-gcc-c++ \
+    devtoolset-9-libstdc++-devel \
+    devtoolset-9-make \
+    llvm-toolset-7-cmake \
+    sclo-git212 && \
+    echo "source /opt/rh/devtoolset-9/enable" >> /etc/bashrc && \
+    echo "source /opt/rh/llvm-toolset-7/enable" >> /etc/bashrc && \
+    echo "source /opt/rh/sclo-git212/enable" >> /etc/bashrc && \
+    source /etc/bashrc && \
+    pip3 install pyinstaller -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com
+
+FROM curve-builder AS curve-1.2.5
+LABEL maintainer="Cyber-SiKu <Cyber-SiKu@outloook.com>"
+ADD https://github.com/opencurve/curve/archive/refs/tags/v1.2.5.tar.gz /
+RUN source /etc/bashrc && \
+    tar xvf v1.2.5.tar.gz && rm v1.2.5.tar.gz && \
+    cd /curve-1.2.5/ && bash replace-curve-repo.sh && \
+    git init && sed -i "s;python2;python3;g" mk-tar.sh && \
+    sed -i "s;tag_version=9.9.9;tag_version=1.2.5;g" mk-tar.sh && \
+    sed -i "s;commit_id=`git show --abbrev-commit HEAD|head -n 1|awk '{print \$2}'`;commit_id=\"86e8e1a\";g" mk-tar.sh && \
+    bash mk-tar.sh release && mv curve_1.2.5+86e8e1a.tar.gz / && \
+    cd / && rm /curve-1.2.5/ -rf 
+
+FROM centos:7 AS polardb-builder
+LABEL maintainer="Cyber-SiKu <Cyber-SiKu@outloook.com>"
+CMD bash
+# avoid missing locale problem
+RUN sed -i 's/override_install_langs/# &/' /etc/yum.conf
+# add EPEL and scl source
+RUN rpmkeys --import file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7 && \
+    yum install -y epel-release centos-release-scl && \
+    rpmkeys --import file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7 && \
+    rpmkeys --import file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-SIG-SCLo && \
+    yum update -y && \
+    yum clean all
+# GCC and LLVM
+RUN yum install -y \
+    devtoolset-9-gcc \
+    devtoolset-9-gcc-c++ \
+    devtoolset-9-gdb \
+    devtoolset-9-libstdc++-devel \
+    devtoolset-9-make \
+    llvm-toolset-7.0-llvm-devel \
+    llvm-toolset-7.0-clang-devel \
+    llvm-toolset-7.0-cmake && \
+    yum clean all
+# dependencies
+RUN yum install -y \
+    libicu-devel \
+    pam-devel \
+    readline-devel \
+    libxml2-devel \
+    libxslt-devel \
+    openldap-devel \
+    openldap-clients \
+    openldap-servers \
+    libuuid-devel \
+    xerces-c-devel \
+    bison \
+    flex \
+    gettext \
+    tcl-devel \
+    python-devel \
+    perl-IPC-Run \
+    perl-Expect \
+    perl-Test-Simple \
+    perl-DBD-Pg \
+    perl-ExtUtils-Embed \
+    perl-ExtUtils-MakeMaker \
+    zlib-devel \
+    krb5-devel \
+    krb5-workstation \
+    krb5-server \
+    protobuf-devel \
+    libaio-devel \
+    fuse-devel \
+    gtest-devel && \
+    ln /usr/lib64/perl5/CORE/libperl.so /usr/lib64/libperl.so && \
+    yum clean all
+# install basic tools
+RUN yum install -y \
+    git lcov psmisc sudo vim \
+    less  \
+    net-tools  \
+    python2-psycopg2 \
+    python2-requests  \
+    tar  \
+    shadow-utils \
+    which  \
+    binutils\
+    libtool \
+    perf  \
+    make sudo \
+    wget \
+    util-linux && \
+    yum clean all
+
+# set to empty if GitHub is not barriered
+# ENV GITHUB_PROXY=https://ghproxy.com/
+ENV GITHUB_PROXY=
+ENV ZLOG_VERSION=1.2.14
+ENV OPENSSL_VERSION=OpenSSL_1_1_1k
+ENV PFSD_VERSION=pfsd4pg-release-1.2.42-20220419
+# install dependencies from GitHub mirror
+RUN cd /usr/local && \
+    # zlog for PFSD
+    wget --no-verbose --no-check-certificate "${GITHUB_PROXY}https://github.com/HardySimpson/zlog/archive/refs/tags/${ZLOG_VERSION}.tar.gz" && \
+    # PFSD
+    wget --no-verbose --no-check-certificate "${GITHUB_PROXY}https://github.com/ApsaraDB/PolarDB-FileSystem/archive/refs/tags/${PFSD_VERSION}.tar.gz" && \
+    # OpenSSL 1.1.1
+    wget --no-verbose --no-check-certificate "${GITHUB_PROXY}https://github.com/openssl/openssl/archive/refs/tags/${OPENSSL_VERSION}.tar.gz" && \
+    # enable build tools
+    echo "source /opt/rh/devtoolset-9/enable" >> /etc/bashrc && \
+    echo "source /opt/rh/llvm-toolset-7.0/enable" >> /etc/bashrc && \
+    source /etc/bashrc && \
+    # unzip and install zlog
+    gzip -d $ZLOG_VERSION.tar.gz && \
+    tar xpf $ZLOG_VERSION.tar && \
+    cd zlog-$ZLOG_VERSION && \
+    make && make install && \
+    echo '/usr/local/lib' >> /etc/ld.so.conf && ldconfig && \
+    cd .. && \
+    rm -rf $ZLOG_VERSION* && \
+    rm -rf zlog-$ZLOG_VERSION && \
+    # unzip and install PFSD
+    gzip -d $PFSD_VERSION.tar.gz && \
+    tar xpf $PFSD_VERSION.tar && \
+    cd PolarDB-FileSystem-$PFSD_VERSION && \
+    sed -i 's/-march=native //' CMakeLists.txt && \
+    ./autobuild.sh && ./install.sh && \
+    cd .. && \
+    rm -rf $PFSD_VERSION* && \
+    rm -rf PolarDB-FileSystem-$PFSD_VERSION* && \
+    # unzip and install OpenSSL 1.1.1
+    gzip -d $OPENSSL_VERSION.tar.gz && \
+    tar xpf $OPENSSL_VERSION.tar && \
+    cd openssl-$OPENSSL_VERSION && \
+    ./config --prefix=/usr/local/openssl && make -j8 && make install && \
+    cp /usr/local/openssl/lib/lib* /usr/local/lib/ && \
+    cp -r /usr/local/openssl/include/openssl /usr/local/include/ && \
+    cd .. && \
+    rm -rf $OPENSSL_VERSION* && \
+    rm -rf openssl-$OPENSSL_VERSION && \
+    ldconfig
+# add software repository of Node.js LTS
+# @see https://github.com/nodesource/distributions
+# use yarn for documentation development
+RUN curl -fsSL https://rpm.nodesource.com/setup_lts.x | bash - && \
+    curl -sL https://dl.yarnpkg.com/rpm/yarn.repo | tee /etc/yum.repos.d/yarn.repo && \
+    yum install -y yarn && \
+    yum clean all
+# copy curve-sdk
+COPY --from=curve-1.2.5 /curve_1.2.5+86e8e1a.tar.gz /
+RUN tar -zxvf curve_1.2.5+86e8e1a.tar.gz && rm curve_1.2.5+86e8e1a.tar.gz && \
+    cd /curve/curve-sdk && \
+    cp -f lib/* /usr/lib64 && \
+    cp -f bin/* /usr/bin && \
+    mkdir -p /usr/curvefs && \
+    cp -f curvefs/* /usr/curvefs && \
+    cp -f include/* /usr/include && \
+    rm -rf /curve && \
+    ldconfig
+# create default user
+ENV USER_NAME=postgres
+RUN echo "create default user" && \
+    groupadd -r $USER_NAME && \
+    useradd -g $USER_NAME $USER_NAME -p '' && \
+    usermod -aG wheel $USER_NAME
+WORKDIR /home/$USER_NAME
+# modify conf
+RUN echo "modify conf" && \
+    mkdir -p /var/log/pfs && chown $USER_NAME /var/log/pfs && \
+    mkdir -p /var/run/pfs && chown $USER_NAME /var/run/pfs && \
+    mkdir -p /var/run/pfsd && chown $USER_NAME /var/run/pfsd && \
+    mkdir -p /dev/shm/pfsd && chown $USER_NAME /dev/shm/pfsd && \
+    touch /var/run/pfsd/.pfsd && \
+    chkconfig --add pfsd_env && \
+    echo "ulimit -c unlimited" >> /home/postgres/.bashrc && \
+    echo "export PATH=/home/postgres/tmp_basedir_polardb_pg_1100_bld/bin:\$PATH" >> /home/postgres/.bashrc && \
+    echo "alias pg='psql -h /home/postgres/tmp_master_dir_polardb_pg_1100_bld/'" >> /home/postgres/.bashrc && \
+    rm /etc/localtime && \
+    cp /usr/share/zoneinfo/UTC /etc/localtime && \
+    sed -i 's/4096/unlimited/g' /etc/security/limits.d/20-nproc.conf && \
+    sed -i 's/vim/vi/g' /root/.bashrc
+USER $USER_NAME
