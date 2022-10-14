@@ -158,18 +158,28 @@ RUN yum install -y \
     util-linux && \
     yum clean all
 
+# copy curve-sdk
+COPY --from=curve-1.2.5 /curve_1.2.5+86e8e1a.tar.gz /
+RUN tar -zxvf curve_1.2.5+86e8e1a.tar.gz && rm curve_1.2.5+86e8e1a.tar.gz && \
+    cd /curve/curve-sdk && \
+    cp -f lib/* /usr/lib64 && \
+    cp -f bin/* /usr/bin && \
+    mkdir -p /usr/curvefs && \
+    cp -f curvefs/* /usr/curvefs && \
+    cp -f include/* /usr/include && \
+    rm -rf /curve
 # set to empty if GitHub is not barriered
 # ENV GITHUB_PROXY=https://ghproxy.com/
 ENV GITHUB_PROXY=
 ENV ZLOG_VERSION=1.2.14
 ENV OPENSSL_VERSION=OpenSSL_1_1_1k
-ENV PFSD_VERSION=pfsd4pg-release-1.2.42-20220419
+ENV PFSD_VERSION=curvebs_sdk_devio
 # install dependencies from GitHub mirror
 RUN cd /usr/local && \
     # zlog for PFSD
     wget --no-verbose --no-check-certificate "${GITHUB_PROXY}https://github.com/HardySimpson/zlog/archive/refs/tags/${ZLOG_VERSION}.tar.gz" && \
     # PFSD
-    wget --no-verbose --no-check-certificate "${GITHUB_PROXY}https://github.com/ApsaraDB/PolarDB-FileSystem/archive/refs/tags/${PFSD_VERSION}.tar.gz" && \
+    wget --no-verbose --no-check-certificate "${GITHUB_PROXY}https://github.com/opencurve/PolarDB-FileSystem/archive/refs/heads/${PFSD_VERSION}.tar.gz" && \
     # OpenSSL 1.1.1
     wget --no-verbose --no-check-certificate "${GITHUB_PROXY}https://github.com/openssl/openssl/archive/refs/tags/${OPENSSL_VERSION}.tar.gz" && \
     # enable build tools
@@ -185,15 +195,6 @@ RUN cd /usr/local && \
     cd .. && \
     rm -rf $ZLOG_VERSION* && \
     rm -rf zlog-$ZLOG_VERSION && \
-    # unzip and install PFSD
-    gzip -d $PFSD_VERSION.tar.gz && \
-    tar xpf $PFSD_VERSION.tar && \
-    cd PolarDB-FileSystem-$PFSD_VERSION && \
-    sed -i 's/-march=native //' CMakeLists.txt && \
-    ./autobuild.sh && ./install.sh && \
-    cd .. && \
-    rm -rf $PFSD_VERSION* && \
-    rm -rf PolarDB-FileSystem-$PFSD_VERSION* && \
     # unzip and install OpenSSL 1.1.1
     gzip -d $OPENSSL_VERSION.tar.gz && \
     tar xpf $OPENSSL_VERSION.tar && \
@@ -204,7 +205,16 @@ RUN cd /usr/local && \
     cd .. && \
     rm -rf $OPENSSL_VERSION* && \
     rm -rf openssl-$OPENSSL_VERSION && \
-    ldconfig
+    ldconfig && \
+    # unzip and install PFSD
+    gzip -d $PFSD_VERSION.tar.gz && \
+    tar xpf $PFSD_VERSION.tar && \
+    cd PolarDB-FileSystem-$PFSD_VERSION && \
+    sed -i 's/-march=native //' CMakeLists.txt && \
+    ./autobuild.sh && ./install.sh && \
+    cd .. && \
+    rm -rf $PFSD_VERSION* && \
+    rm -rf PolarDB-FileSystem-$PFSD_VERSION*
 # add software repository of Node.js LTS
 # @see https://github.com/nodesource/distributions
 # use yarn for documentation development
@@ -212,17 +222,6 @@ RUN curl -fsSL https://rpm.nodesource.com/setup_lts.x | bash - && \
     curl -sL https://dl.yarnpkg.com/rpm/yarn.repo | tee /etc/yum.repos.d/yarn.repo && \
     yum install -y yarn && \
     yum clean all
-# copy curve-sdk
-COPY --from=curve-1.2.5 /curve_1.2.5+86e8e1a.tar.gz /
-RUN tar -zxvf curve_1.2.5+86e8e1a.tar.gz && rm curve_1.2.5+86e8e1a.tar.gz && \
-    cd /curve/curve-sdk && \
-    cp -f lib/* /usr/lib64 && \
-    cp -f bin/* /usr/bin && \
-    mkdir -p /usr/curvefs && \
-    cp -f curvefs/* /usr/curvefs && \
-    cp -f include/* /usr/include && \
-    rm -rf /curve && \
-    ldconfig
 # create default user
 ENV USER_NAME=postgres
 RUN echo "create default user" && \
