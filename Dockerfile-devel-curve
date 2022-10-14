@@ -31,9 +31,7 @@ RUN yum install -y \
     libuuid-devel \
     libnl3-devel \
     libcurl-devel \
-    python3-devel \
-    python3-setuptools \
-    python3-wheel \
+    python-devel \
     libunwind-devel \
     fuse3-devel \
     sudo \
@@ -65,12 +63,16 @@ RUN yum install -y \
     devtoolset-9-libstdc++-devel \
     devtoolset-9-make \
     llvm-toolset-7-cmake \
-    sclo-git212 && \
+    sclo-git212 \
+    python27-python-pip \
+    python27-python-setuptools \
+    python27-python-wheel && \
     echo "source /opt/rh/devtoolset-9/enable" >> /etc/bashrc && \
     echo "source /opt/rh/llvm-toolset-7/enable" >> /etc/bashrc && \
     echo "source /opt/rh/sclo-git212/enable" >> /etc/bashrc && \
+    echo "source /opt/rh/python27/enable" >> /etc/bashrc && \
     source /etc/bashrc && \
-    pip3 install pyinstaller -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com
+    pip install pyinstaller==3.6 -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com
 
 FROM curve-builder AS curve-1.2.5
 LABEL maintainer="Cyber-SiKu <Cyber-SiKu@outloook.com>"
@@ -78,11 +80,11 @@ ADD https://github.com/opencurve/curve/archive/refs/tags/v1.2.5.tar.gz /
 RUN source /etc/bashrc && \
     tar xvf v1.2.5.tar.gz && rm v1.2.5.tar.gz && \
     cd /curve-1.2.5/ && bash replace-curve-repo.sh && \
-    git init && sed -i "s;python2;python3;g" mk-tar.sh && \
+    git init && \
     sed -i "s;tag_version=9.9.9;tag_version=1.2.5;g" mk-tar.sh && \
     sed -i "s;commit_id=`git show --abbrev-commit HEAD|head -n 1|awk '{print \$2}'`;commit_id=\"86e8e1a\";g" mk-tar.sh && \
-    bash mk-tar.sh release && mv curve_1.2.5+86e8e1a.tar.gz / && \
-    cd / && rm /curve-1.2.5/ -rf 
+    sed -i "s;/usr/bin/python2;/opt/rh/python27/root/usr/bin/python2;g" mk-tar.sh && \
+    bash mk-tar.sh release && mv curve_1.2.5+86e8e1a.tar.gz / 
 
 FROM centos:7 AS polardb-builder
 LABEL maintainer="Cyber-SiKu <Cyber-SiKu@outloook.com>"
@@ -155,7 +157,7 @@ RUN yum install -y \
     perf  \
     make sudo \
     wget \
-    util-linux && \
+    util-linux libunwind && \
     yum clean all
 
 # copy curve-sdk
@@ -167,7 +169,10 @@ RUN tar -zxvf curve_1.2.5+86e8e1a.tar.gz && rm curve_1.2.5+86e8e1a.tar.gz && \
     mkdir -p /usr/curvefs && \
     cp -f curvefs/* /usr/curvefs && \
     cp -f include/* /usr/include && \
-    rm -rf /curve
+    rm -rf /curve && \
+    mkdir -p /etc/curve
+COPY --from=curve-1.2.5 /curve-1.2.5/conf/client.conf /etc/curve/client.conf
+
 # set to empty if GitHub is not barriered
 # ENV GITHUB_PROXY=https://ghproxy.com/
 ENV GITHUB_PROXY=
