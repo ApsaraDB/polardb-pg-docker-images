@@ -43,7 +43,7 @@ RUN yum install -y \
     if [ "$TARGETARCH" = "amd64" ]; then \
     OCI_ARCH=x86_64; \
     elif [ "$TARGETARCH" = "arm64" ]; then \
-    OCI_ARCH=aarch64; \
+    OCI_ARCH=arm64; \
     else \
     OCI_ARCH=x86_64; \
     fi && \
