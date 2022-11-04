@@ -131,7 +131,7 @@ RUN cd /usr/local && \
 # add software repository of Node.js LTS
 # @see https://github.com/nodesource/distributions
 # use yarn for documentation development
-RUN curl -fsSL https://rpm.nodesource.com/setup_lts.x | bash - && \
+RUN curl -fsSL https://rpm.nodesource.com/setup_16.x | bash - && \
     curl -sL https://dl.yarnpkg.com/rpm/yarn.repo | tee /etc/yum.repos.d/yarn.repo && \
     yum install -y yarn && \
     yum clean all
@@ -155,6 +155,7 @@ RUN echo "modify conf" && \
     chkconfig --add pfsd_env && \
     echo "ulimit -c unlimited" >> /home/postgres/.bashrc && \
     echo "export PATH=/home/postgres/tmp_basedir_polardb_pg_1100_bld/bin:\$PATH" >> /home/postgres/.bashrc && \
+    echo "export PGHOST=127.0.0.1" >> /home/postgres/.bashrc && \
     echo "alias pg='psql -h /home/postgres/tmp_master_dir_polardb_pg_1100_bld/'" >> /home/postgres/.bashrc && \
     rm /etc/localtime && \
     cp /usr/share/zoneinfo/UTC /etc/localtime && \
