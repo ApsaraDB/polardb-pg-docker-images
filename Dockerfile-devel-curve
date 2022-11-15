@@ -41,50 +41,76 @@ RUN yum install -y \
     centos-release-scl-rh \
     which && \
     if [ "$TARGETARCH" = "amd64" ]; then \
-    OCI_ARCH=x86_64; \
+        BAZEL_ARCH=x86_64; \
     elif [ "$TARGETARCH" = "arm64" ]; then \
-    OCI_ARCH=aarch64; \
+        BAZEL_ARCH=arm64; \
     else \
-    OCI_ARCH=x86_64; \
+        BAZEL_ARCH=x86_64; \
     fi && \
-    wget https://curve-build.nos-eastchina1.126.net/bazelbuild/bazelisk/bazelisk-linux-${OCI_ARCH} && \
-    mv bazelisk-linux-${OCI_ARCH} /usr/bin/bazelisk && \
+    wget https://curve-build.nos-eastchina1.126.net/bazelbuild/bazelisk/bazelisk-linux-${BAZEL_ARCH} && \
+    mv bazelisk-linux-${BAZEL_ARCH} /usr/bin/bazelisk && \
     ln -s /usr/bin/bazelisk /usr/bin/bazel && \
-    wget https://curve-build.nos-eastchina1.126.net/bazelbuild/4.2.2/bazel-4.2.2-linux-${OCI_ARCH} && \
-    mkdir -p /root/.cache/bazelisk/downloads/bazelbuild/bazel-4.2.2-linux-${OCI_ARCH}/bin && \
-    mv bazel-4.2.2-linux-${OCI_ARCH} /root/.cache/bazelisk/downloads/bazelbuild/bazel-4.2.2-linux-${OCI_ARCH}/bin/bazel && \
-    wget https://curve-build.nos-eastchina1.126.net/bazelbuild/0.17.2/bazel-0.17.2-linux-${OCI_ARCH} && \
-    mkdir -p /root/.cache/bazelisk/downloads/bazelbuild/bazel-0.17.2-linux-${OCI_ARCH}/bin && \
-    mv bazel-0.17.2-linux-${OCI_ARCH} /root/.cache/bazelisk/downloads/bazelbuild/bazel-0.17.2-linux-${OCI_ARCH}/bin/bazel && \
-    chmod +x /root/.cache/bazelisk/downloads/bazelbuild/bazel-4.2.2-linux-${OCI_ARCH}/bin/bazel /root/.cache/bazelisk/downloads/bazelbuild/bazel-0.17.2-linux-${OCI_ARCH}/bin/bazel /usr/bin/bazel /usr/bin/bazelisk && \
+    wget https://curve-build.nos-eastchina1.126.net/bazelbuild/4.2.2/bazel-4.2.2-linux-${BAZEL_ARCH} && \
+    mkdir -p /root/.cache/bazelisk/downloads/bazelbuild/bazel-4.2.2-linux-${BAZEL_ARCH}/bin && \
+    mv bazel-4.2.2-linux-${BAZEL_ARCH} /root/.cache/bazelisk/downloads/bazelbuild/bazel-4.2.2-linux-${BAZEL_ARCH}/bin/bazel && \
+    wget https://curve-build.nos-eastchina1.126.net/bazelbuild/0.17.2/bazel-0.17.2-linux-${BAZEL_ARCH} && \
+    mkdir -p /root/.cache/bazelisk/downloads/bazelbuild/bazel-0.17.2-linux-${BAZEL_ARCH}/bin && \
+    mv bazel-0.17.2-linux-${BAZEL_ARCH} /root/.cache/bazelisk/downloads/bazelbuild/bazel-0.17.2-linux-${BAZEL_ARCH}/bin/bazel && \
+    chmod +x /root/.cache/bazelisk/downloads/bazelbuild/bazel-4.2.2-linux-${BAZEL_ARCH}/bin/bazel /root/.cache/bazelisk/downloads/bazelbuild/bazel-0.17.2-linux-${BAZEL_ARCH}/bin/bazel /usr/bin/bazel /usr/bin/bazelisk && \
+    if [ "$TARGETARCH" = "arm64" ]; then \
+        yum install -y epel-release && \
+        yum install -y \
+        rh-git227-git \
+        python2-pip \
+        python-setuptools \
+        python2-wheel \
+        llvm-toolset-7.0-cmake \
+        java-1.8.0-openjdk \
+        java-1.8.0-openjdk-devel && \
+        echo "export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.352.b08-2.el7_9.aarch64" >> /etc/bashrc && \
+        echo "source /opt/rh/llvm-toolset-7.0/enable" >> /etc/bashrc && \
+        echo "source /opt/rh/rh-git227/enable" >> /etc/bashrc && \
+        echo "source /opt/rh/httpd24/enable" >> /etc/bashrc; \
+    else \
+        yum install -y \
+        sclo-git212 \
+        python27-python-pip \
+        python27-python-setuptools \
+        llvm-toolset-7-cmake \
+        python27-python-wheel && \
+        echo "source /opt/rh/sclo-git212/enable" >> /etc/bashrc && \
+        echo "source /opt/rh/llvm-toolset-7/enable" >> /etc/bashrc && \
+        echo "source /opt/rh/python27/enable" >> /etc/bashrc; \
+    fi && \
     yum install -y \
     devtoolset-9-gcc \
     devtoolset-9-gcc-c++ \
     devtoolset-9-libstdc++-devel \
     devtoolset-9-make \
-    llvm-toolset-7-cmake \
-    sclo-git212 \
-    python27-python-pip \
-    python27-python-setuptools \
-    python27-python-wheel && \
+    llvm-toolset-7.0-cmake && \
     echo "source /opt/rh/devtoolset-9/enable" >> /etc/bashrc && \
-    echo "source /opt/rh/llvm-toolset-7/enable" >> /etc/bashrc && \
-    echo "source /opt/rh/sclo-git212/enable" >> /etc/bashrc && \
-    echo "source /opt/rh/python27/enable" >> /etc/bashrc && \
     source /etc/bashrc && \
-    pip install pyinstaller==3.6 -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com
+    pip install pyinstaller==3.2 -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com
 
 FROM curve-builder AS curve-1.2.5
 LABEL maintainer="Cyber-SiKu <Cyber-SiKu@outloook.com>"
-ADD https://github.com/opencurve/curve/archive/refs/tags/v1.2.5.tar.gz /
+# ENV GITHUB_PROXY=https://ghproxy.com/
+ENV GITHUB_PROXY=
+ARG TARGETARCH
 RUN source /etc/bashrc && \
-    tar xvf v1.2.5.tar.gz && rm v1.2.5.tar.gz && \
-    cd /curve-1.2.5/ && bash replace-curve-repo.sh && \
-    git init && \
+    git clone ${GITHUB_PROXY}https://github.com/opencurve/curve --branch v1.2.5 /curve-1.2.5 && \
+    cd /curve-1.2.5/ && \
+    # git init && \
+    if [ "$TARGETARCH" = "arm64" ]; then \
+        git config --global core.autocrlf input; \
+        curl https://curve-build.nos-eastchina1.126.net/arm64.patch | git apply; \
+        sed -i "s;0.17.2;0.17.2-;g" mk-tar.sh; \
+    else \
+        sed -i "s;/usr/bin/python2;/opt/rh/python27/root/usr/bin/python2;g" mk-tar.sh; \
+    fi && \
     sed -i "s;tag_version=9.9.9;tag_version=1.2.5;g" mk-tar.sh && \
-    sed -i "s;commit_id=`git show --abbrev-commit HEAD|head -n 1|awk '{print \$2}'`;commit_id=\"86e8e1a\";g" mk-tar.sh && \
-    sed -i "s;/usr/bin/python2;/opt/rh/python27/root/usr/bin/python2;g" mk-tar.sh && \
-    bash mk-tar.sh release && mv curve_1.2.5+86e8e1a.tar.gz / 
+    sed -i "s;commit_id=`git show --abbrev-commit HEAD|head -n 1|awk '{print \$2}'`;commit_id=\"86e8e1a9\";g" mk-tar.sh && \
+    bash replace-curve-repo.sh && bash mk-tar.sh release && mv curve_1.2.5+86e8e1a9.tar.gz / 
 
 FROM centos:7 AS polardb-builder
 LABEL maintainer="Cyber-SiKu <Cyber-SiKu@outloook.com>"
@@ -161,8 +187,8 @@ RUN yum install -y \
     yum clean all
 
 # copy curve-sdk
-COPY --from=curve-1.2.5 /curve_1.2.5+86e8e1a.tar.gz /
-RUN tar -zxvf curve_1.2.5+86e8e1a.tar.gz && rm curve_1.2.5+86e8e1a.tar.gz && \
+COPY --from=curve-1.2.5 /curve_1.2.5+86e8e1a9.tar.gz /
+RUN tar -zxvf curve_1.2.5+86e8e1a9.tar.gz && rm curve_1.2.5+86e8e1a9.tar.gz && \
     cd /curve/curve-sdk && \
     cp -f lib/* /usr/lib64 && \
     cp -f bin/* /usr/bin && \
@@ -240,6 +266,8 @@ RUN echo "modify conf" && \
     mkdir -p /var/run/pfs && chown $USER_NAME /var/run/pfs && \
     mkdir -p /var/run/pfsd && chown $USER_NAME /var/run/pfsd && \
     mkdir -p /dev/shm/pfsd && chown $USER_NAME /dev/shm/pfsd && \
+    mkdir -p /data/log/curve/ && chown $USER_NAME /data/log/curve/  && \
+    sed -i "s;# __CURVEADM_TEMPLATE__ /curvebs/client/logs __CURVEADM_TEMPLATE__;;g" /etc/curve/client.conf && \
     touch /var/run/pfsd/.pfsd && \
     chkconfig --add pfsd_env && \
     echo "ulimit -c unlimited" >> /home/postgres/.bashrc && \
