@@ -24,7 +24,7 @@ RUN yum install -y \
         devtoolset-9-make \
         llvm-toolset-7.0-llvm-devel \
         llvm-toolset-7.0-clang-devel \
-        llvm-toolset-7.0-cmake && \
+        cmake3 && \
     yum clean all
 
 # dependencies
@@ -97,6 +97,7 @@ RUN cd /usr/local && \
     # enable build tools
     echo "source /opt/rh/devtoolset-9/enable" >> /etc/bashrc && \
     echo "source /opt/rh/llvm-toolset-7.0/enable" >> /etc/bashrc && \
+    ln -s /usr/bin/cmake3 /usr/bin/cmake && \
     source /etc/bashrc && \
     # unzip and install zlog
     gzip -d $ZLOG_VERSION.tar.gz && \
