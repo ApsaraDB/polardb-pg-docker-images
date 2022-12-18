@@ -1,0 +1,23 @@
+FROM polardb/polardb_pg_devel AS building
+
+LABEL maintainer="mrdrivingduck@gmail.com"
+
+WORKDIR /home/postgres/
+
+COPY ./PolarDB-for-PostgreSQL ./PolarDB-for-PostgreSQL
+
+WORKDIR /home/postgres/PolarDB-for-PostgreSQL
+
+RUN sudo chown -R postgres:postgres ./
+
+RUN source /etc/bashrc && \
+    ./polardb_build.sh --with-pfsd --initpx
+
+FROM polardb/polardb_pg_devel
+
+LABEL maintainer="mrdrivingduck@gmail.com"
+
+COPY --from=building /home/postgres/tmp_basedir_polardb_pg_1100_bld/ /home/postgres/tmp_basedir_polardb_pg_1100_bld/
+
+RUN sudo chown -R postgres:postgres /home/postgres/tmp_*
+RUN sudo chmod -R 700 /home/postgres/tmp_*

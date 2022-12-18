@@ -67,3 +67,20 @@ docker_builder:
 #           --platform linux/amd64,linux/arm64 \
 #           --tag polardb/polardb_pg_local_instance:htap \
 #           --file Dockerfile-local-instance-htap .
+#     -
+#       name: binary-image-local
+#       build_script: |
+#         docker buildx build \
+#           --push \
+#           --platform linux/amd64,linux/arm64 \
+#           --tag polardb/polardb_pg_binary:local \
+#           --file Dockerfile-binary-local .
+#     -
+#       name: binary-image-pfsd
+#       build_script: |
+#         docker buildx build \
+#           --push \
+#           --platform linux/amd64,linux/arm64 \
+#           --tag polardb/polardb_pg_binary:pfsd \
+#           --tag polardb/polardb_pg_binary:latest \
+#           --file Dockerfile-binary-pfsd .
