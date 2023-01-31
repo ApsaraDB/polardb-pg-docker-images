@@ -1,4 +1,4 @@
-FROM polardb/polardb_pg_devel AS building
+FROM polardb/polardb_pg_devel:ubuntu20.04 AS building
 
 LABEL maintainer="mrdrivingduck@gmail.com"
 
@@ -10,10 +10,9 @@ WORKDIR /home/postgres/PolarDB-for-PostgreSQL
 
 RUN sudo chown -R postgres:postgres ./
 
-RUN source /etc/bashrc && \
-    ./polardb_build.sh --withrep --repnum=1
+RUN ./polardb_build.sh --withrep --repnum=1
 
-FROM polardb/polardb_pg_devel
+FROM polardb/polardb_pg_devel:ubuntu20.04
 
 LABEL maintainer="mrdrivingduck@gmail.com"
 

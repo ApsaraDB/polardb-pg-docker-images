@@ -13,7 +13,7 @@ jobs:
 
     strategy:
       matrix:
-        base_image: [ centos7 ]
+        base_image: [ centos7, ubuntu20.04 ]
 
     steps:
 
@@ -34,9 +34,9 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      # build devel images (centos7 is the latest tag)
+      # build devel images (ubuntu20.04 is the latest tag)
       -
-        if: ${{ matrix.base_image == 'centos7' }}
+        if: ${{ matrix.base_image == 'ubuntu20.04' }}
         name: Build and push development image with 'latest' tag
         uses: docker/build-push-action@v3
         with:
@@ -49,7 +49,7 @@ jobs:
           platforms: linux/amd64, linux/arm64
       # build devel images (other distributions)
       -
-        if: ${{ matrix.base_image != 'centos7' }}
+        if: ${{ matrix.base_image != 'ubuntu20.04' }}
         name: Build and push other development images
         uses: docker/build-push-action@v3
         with:
