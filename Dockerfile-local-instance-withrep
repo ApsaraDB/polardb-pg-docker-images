@@ -12,6 +12,15 @@ RUN sudo chown -R postgres:postgres ./
 
 RUN ./polardb_build.sh --withrep --repnum=1
 
+WORKDIR /home/postgres
+
+RUN wget https://download.osgeo.org/postgis/source/postgis-3.3.2.tar.gz && \
+    tar -zxvf postgis-3.3.2.tar.gz && \
+    cd postgis-3.3.2 && \
+    ./configure && \
+    make && \
+    make install
+
 FROM polardb/polardb_pg_devel:ubuntu20.04
 
 LABEL maintainer="mrdrivingduck@gmail.com"

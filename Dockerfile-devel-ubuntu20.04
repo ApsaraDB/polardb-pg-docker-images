@@ -72,6 +72,15 @@ RUN apt install -y \
         cmake && \
     apt clean -y
 
+RUN apt install -y \
+        libgeos-dev \
+        libproj-dev \
+        libgdal-dev \
+        libprotobuf-c-dev \
+        protobuf-compiler \
+        protobuf-c-compiler && \
+    apt clean -y
+
 # set to empty if GitHub is not barriered
 # ENV GITHUB_PROXY=https://ghproxy.com/
 ENV GITHUB_PROXY=
