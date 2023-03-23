@@ -8,19 +8,13 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-publish-dev-image:
+
+  build-and-publish-dev-image-main:
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        base_image: [ centos7, ubuntu20.04 ]
-
     steps:
-
       # Checkout source code
       -
         uses: actions/checkout@v3
-
       # Environment preparation
       -
         name: Set up QEMU
@@ -34,22 +28,41 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      # build devel images (ubuntu20.04 is the latest tag)
       -
-        if: ${{ matrix.base_image == 'ubuntu20.04' }}
         name: Build and push development image with 'latest' tag
         uses: docker/build-push-action@v3
         with:
           push: true
-          file: Dockerfile-devel-${{ matrix.base_image }}
+          file: Dockerfile-devel-ubuntu20.04
           network: "host"
           tags: |
-            polardb/polardb_pg_devel:${{ matrix.base_image }}
+            polardb/polardb_pg_devel:ubuntu20.04
             polardb/polardb_pg_devel:latest
           platforms: linux/amd64, linux/arm64
-      # build devel images (other distributions)
+
+  build-and-publish-dev-image-others:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        base_image: [ centos7 ]
+    steps:
+      # Checkout source code
       -
-        if: ${{ matrix.base_image != 'ubuntu20.04' }}
+        uses: actions/checkout@v3
+      # Environment preparation
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      -
+        name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      -
         name: Build and push other development images
         uses: docker/build-push-action@v3
         with:
@@ -61,7 +74,7 @@ jobs:
 
   build-and-publish-binary-image:
     runs-on: ubuntu-latest
-    needs: build-and-publish-dev-image
+    needs: build-and-publish-dev-image-main
     strategy:
       matrix:
         instance_type: [ localfs, pfs ]
@@ -93,7 +106,7 @@ jobs:
 
   build-and-publish-instance-image:
     runs-on: ubuntu-latest
-    needs: build-and-publish-dev-image
+    needs: build-and-publish-dev-image-main
     strategy:
       matrix:
         instance_type: [ single, withrep, htap ]

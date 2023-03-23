@@ -17,6 +17,7 @@ WORKDIR /home/postgres
 RUN wget https://download.osgeo.org/postgis/source/postgis-3.3.2.tar.gz && \
     tar -zxvf postgis-3.3.2.tar.gz && \
     cd postgis-3.3.2 && \
+    export PATH=/home/postgres/tmp_basedir_polardb_pg_1100_bld/bin:$PATH && \
     ./configure && \
     make && \
     make install
