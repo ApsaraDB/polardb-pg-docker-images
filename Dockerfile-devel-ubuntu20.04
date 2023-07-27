@@ -138,8 +138,9 @@ RUN echo "modify conf" && \
     mkdir -p /dev/shm/pfsd && chown $USER_NAME /dev/shm/pfsd && \
     touch /var/run/pfsd/.pfsd && \
     echo "ulimit -c unlimited" >> /home/postgres/.bashrc && \
-    echo "export PATH=/home/postgres/tmp_basedir_polardb_pg_1100_bld/bin:\$PATH" >> /home/postgres/.bashrc && \
     echo "export PGHOST=127.0.0.1" >> /home/postgres/.bashrc && \
     echo "alias pg='psql -h /home/postgres/tmp_master_dir_polardb_pg_1100_bld/'" >> /home/postgres/.bashrc
+
+ENV PATH="/home/postgres/tmp_basedir_polardb_pg_1100_bld/bin:$PATH"
 
 USER $USER_NAME

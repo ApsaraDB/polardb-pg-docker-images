@@ -155,12 +155,13 @@ RUN echo "modify conf" && \
     touch /var/run/pfsd/.pfsd && \
     chkconfig --add pfsd_env && \
     echo "ulimit -c unlimited" >> /home/postgres/.bashrc && \
-    echo "export PATH=/home/postgres/tmp_basedir_polardb_pg_1100_bld/bin:\$PATH" >> /home/postgres/.bashrc && \
     echo "export PGHOST=127.0.0.1" >> /home/postgres/.bashrc && \
     echo "alias pg='psql -h /home/postgres/tmp_master_dir_polardb_pg_1100_bld/'" >> /home/postgres/.bashrc && \
     rm /etc/localtime && \
     cp /usr/share/zoneinfo/UTC /etc/localtime && \
     sed -i 's/4096/unlimited/g' /etc/security/limits.d/20-nproc.conf && \
     sed -i 's/vim/vi/g' /root/.bashrc
+
+ENV PATH="/home/postgres/tmp_basedir_polardb_pg_1100_bld/bin:$PATH"
 
 USER $USER_NAME

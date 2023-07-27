@@ -10,17 +10,16 @@ WORKDIR /home/postgres/PolarDB-for-PostgreSQL
 
 RUN sudo chown -R postgres:postgres ./
 
-RUN ./polardb_build.sh --with-pfsd --initpx
+RUN ./polardb_build.sh --with-pfsd --withpx --noinit
 
 WORKDIR /home/postgres
 
-RUN wget https://download.osgeo.org/postgis/source/postgis-3.3.2.tar.gz && \
-    tar -zxvf postgis-3.3.2.tar.gz && \
+RUN wget --no-verbose https://download.osgeo.org/postgis/source/postgis-3.3.2.tar.gz && \
+    tar -zxf postgis-3.3.2.tar.gz && \
     cd postgis-3.3.2 && \
-    export PATH=/home/postgres/tmp_basedir_polardb_pg_1100_bld/bin:$PATH && \
-    ./configure && \
-    make && \
-    make install
+    ./configure -q && \
+    make -s && \
+    make -s install
 
 FROM polardb/polardb_pg_devel:ubuntu20.04
 

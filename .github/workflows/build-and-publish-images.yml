@@ -34,7 +34,6 @@ jobs:
         with:
           push: true
           file: Dockerfile-devel-ubuntu20.04
-          network: "host"
           tags: |
             polardb/polardb_pg_devel:ubuntu20.04
             polardb/polardb_pg_devel:latest
@@ -68,7 +67,6 @@ jobs:
         with:
           push: true
           file: Dockerfile-devel-${{ matrix.base_image }}
-          network: "host"
           tags: polardb/polardb_pg_devel:${{ matrix.base_image }}
           platforms: linux/amd64, linux/arm64
 
@@ -100,16 +98,12 @@ jobs:
         with:
           push: true
           file: Dockerfile-binary-${{ matrix.instance_type }}
-          network: "host"
           tags: polardb/polardb_pg_binary:${{ matrix.instance_type }}
           platforms: linux/amd64, linux/arm64
 
   build-and-publish-instance-image:
     runs-on: ubuntu-latest
-    needs: build-and-publish-dev-image-main
-    strategy:
-      matrix:
-        instance_type: [ single, withrep, htap ]
+    needs: build-and-publish-binary-image
     steps:
       # Checkout source code
       - uses: actions/checkout@v3
@@ -132,7 +126,6 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           push: true
-          file: Dockerfile-local-instance-${{ matrix.instance_type }}
-          network: "host"
-          tags: polardb/polardb_pg_local_instance:${{ matrix.instance_type }}
+          file: Dockerfile-local-instance
+          tags: polardb/polardb_pg_local_instance:latest
           platforms: linux/amd64, linux/arm64
