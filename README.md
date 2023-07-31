@@ -43,7 +43,7 @@ postgres@f9b569fed05b:~$
 
 ### With Data Persistence
 
-Use an empty local directory as a volume, and mount the volume when creating the container. The container entry point will try to initdb in this volume. `${your_data_dir}` should be empty for the first time. If the volume is not emtpy, the entry point will regard the volume as already been initialized, and will start-up the database instance from the volume. The volume must be mounted under `/var/polardb/` inside container:
+Use an empty local directory as a volume, and mount the volume when creating the container. The container entry point will try to initdb in this volume. `${your_data_dir}` should be empty for the first time. If the volume is not empty, the entry point will regard the volume as already been initialized, and will start-up the database instance from the volume. The volume must be mounted under `/var/polardb/` inside container:
 
 ```shell
 docker run -it --rm \

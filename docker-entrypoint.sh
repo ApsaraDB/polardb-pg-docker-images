@@ -43,6 +43,7 @@ polardb_init() {
     echo "polar_enable_replica_use_smgr_cache = on" >> ${primary_datadir}/postgresql.conf
     echo "polar_enable_standby_use_smgr_cache = on" >> ${primary_datadir}/postgresql.conf
     echo "polar_enable_flashback_log = on" >> ${primary_datadir}/postgresql.conf
+    echo "polar_enable_fast_recovery_area = on" >> ${primary_datadir}/postgresql.conf
 
     # storage-related GUCs
     disk_name=`echo ${shared_datadir} | cut -d '/' -f2`
