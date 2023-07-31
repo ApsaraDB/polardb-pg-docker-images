@@ -1,14 +1,15 @@
 FROM polardb/polardb_pg_binary:localfs
-
 LABEL maintainer="mrdrivingduck@gmail.com"
 
 ENV PATH="/home/postgres/tmp_basedir_polardb_pg_1100_bld/bin:$PATH"
-ENV PGPORT=5432
+ENV POLARDB_USER=
+ENV POLARDB_PASSWORD=
+ENV POLARDB_PORT=
 ENV POLARDB_DATA_DIR=/var/polardb
+ENV PGHOST=127.0.0.1
 
 VOLUME ${POLARDB_DATA_DIR}
-EXPOSE 5432
-CMD [ "psql", "-h", "127.0.0.1" ]
+CMD [ "postgres" ]
 
 WORKDIR /home/postgres/
 COPY ./docker-entrypoint.sh ./docker-entrypoint.sh

@@ -1,13 +1,12 @@
 FROM ubuntu:20.04
-
 LABEL maintainer="mrdrivingduck@gmail.com"
-
 CMD bash
 
-# timezone problem
+# Timezone problem
 ENV TZ=Asia/Shanghai
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
+# Upgrade softwares
 RUN apt update -y && \
     apt upgrade -y && \
     apt clean -y
@@ -72,6 +71,7 @@ RUN apt install -y \
         cmake && \
     apt clean -y
 
+# PostGIS
 RUN apt install -y \
         libgeos-dev \
         libproj-dev \
@@ -128,8 +128,6 @@ RUN echo "create default user" && \
     useradd -ms /bin/bash -g $USER_NAME $USER_NAME -p '' && \
     usermod -aG sudo $USER_NAME
 
-WORKDIR /home/$USER_NAME
-
 # modify conf
 RUN echo "modify conf" && \
     mkdir -p /var/log/pfs && chown $USER_NAME /var/log/pfs && \
@@ -142,5 +140,5 @@ RUN echo "modify conf" && \
     echo "alias pg='psql -h /home/postgres/tmp_master_dir_polardb_pg_1100_bld/'" >> /home/postgres/.bashrc
 
 ENV PATH="/home/postgres/tmp_basedir_polardb_pg_1100_bld/bin:$PATH"
-
+WORKDIR /home/$USER_NAME
 USER $USER_NAME

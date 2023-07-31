@@ -1,19 +1,17 @@
 FROM polardb/polardb_pg_devel:ubuntu20.04 AS building
-
 LABEL maintainer="mrdrivingduck@gmail.com"
 
+# Copy source code
 WORKDIR /home/postgres/
-
 COPY ./PolarDB-for-PostgreSQL ./PolarDB-for-PostgreSQL
 
+# Compile and install PolarDB-PG (with PFSD)
 WORKDIR /home/postgres/PolarDB-for-PostgreSQL
-
 RUN sudo chown -R postgres:postgres ./
-
 RUN ./polardb_build.sh --with-pfsd --withpx --noinit
 
+# Install PostGIS
 WORKDIR /home/postgres
-
 RUN wget --no-verbose https://download.osgeo.org/postgis/source/postgis-3.3.2.tar.gz && \
     tar -zxf postgis-3.3.2.tar.gz && \
     cd postgis-3.3.2 && \
@@ -22,9 +20,9 @@ RUN wget --no-verbose https://download.osgeo.org/postgis/source/postgis-3.3.2.ta
     make -s install
 
 FROM polardb/polardb_pg_devel:ubuntu20.04
-
 LABEL maintainer="mrdrivingduck@gmail.com"
 
+# Copy binary
 COPY --from=building /home/postgres/tmp_basedir_polardb_pg_1100_bld/ /home/postgres/tmp_basedir_polardb_pg_1100_bld/
 
 RUN sudo chown -R postgres:postgres /home/postgres/tmp_*
