@@ -103,6 +103,10 @@ polardb_init() {
     echo "polar_trace_heap_scan_flow=1" >> ${primary_datadir}/postgresql.conf
     echo "polar_px_enable_spi_read_all_namespaces=1" >> ${primary_datadir}/postgresql.conf
 
+    # Shared server GUCs
+    echo "polar_enable_shared_server = on" >> ${primary_datadir}/postgresql.conf
+    echo "polar_enable_shm_aset = on" >> ${primary_datadir}/postgresql.conf
+
     # start up primary node
     pg_ctl -D ${primary_datadir} start
 
