@@ -32,7 +32,7 @@ polardb_init() {
     echo "logging_collector = on" >> ${primary_datadir}/postgresql.conf
     echo "log_directory = 'pg_log'" >> ${primary_datadir}/postgresql.conf
 
-    echo "shared_buffers = 128MB" >> ${primary_datadir}/postgresql.conf
+    echo "shared_buffers = '2GB'" >> ${primary_datadir}/postgresql.conf
     echo "synchronous_commit = on" >> ${primary_datadir}/postgresql.conf
     echo "full_page_writes = off" >> ${primary_datadir}/postgresql.conf
     echo "autovacuum_naptime = 10min" >> ${primary_datadir}/postgresql.conf
