@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 LABEL maintainer="mrdrivingduck@gmail.com"
 CMD bash
 
@@ -11,25 +11,24 @@ RUN apt update -y && \
     apt upgrade -y && \
     apt clean -y
 
-# GCC (force to 9) and LLVM (force to 12)
+# GCC (force to 11) and LLVM (force to 15)
 RUN apt install -y \
-        gcc-9 \
-        g++-9 \
-        llvm-12-dev \
-        clang-12 \
+        gcc-11 \
+        g++-11 \
+        llvm-15-dev \
+        clang-15 \
         make \
         gdb \
         pkg-config \
         locales && \
     update-alternatives --install \
-        /usr/bin/gcc gcc /usr/bin/gcc-9 60 --slave \
-        /usr/bin/g++ g++ /usr/bin/g++-9 && \
+        /usr/bin/gcc gcc /usr/bin/gcc-11 60 --slave \
+        /usr/bin/g++ g++ /usr/bin/g++-11 && \
     update-alternatives --install \
-        /usr/bin/llvm-config llvm-config /usr/bin/llvm-config-12 60 --slave \
-        /usr/bin/clang++ clang++ /usr/bin/clang++-12 --slave \
-        /usr/bin/clang clang /usr/bin/clang-12 && \
+        /usr/bin/llvm-config llvm-config /usr/bin/llvm-config-15 60 --slave \
+        /usr/bin/clang++ clang++ /usr/bin/clang++-15 --slave \
+        /usr/bin/clang clang /usr/bin/clang-15 && \
     apt clean -y
-
 # Generate locale
 RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
     sed -i '/zh_CN.UTF-8/s/^# //g' /etc/locale.gen && \
