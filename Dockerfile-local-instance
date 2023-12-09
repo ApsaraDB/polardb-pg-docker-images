@@ -1,4 +1,4 @@
-FROM polardb/polardb_pg_binary:localfs
+FROM polardb/polardb_pg_binary:latest
 LABEL maintainer="mrdrivingduck@gmail.com"
 
 ENV PATH="/home/postgres/tmp_basedir_polardb_pg_1100_bld/bin:$PATH"

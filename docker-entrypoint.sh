@@ -55,7 +55,7 @@ polardb_init() {
     echo "polar_datadir = 'file-dio://$shared_datadir'" >> ${primary_datadir}/postgresql.conf
 
     # preload extensions
-    echo "shared_preload_libraries = '\$libdir/polar_px,\$libdir/polar_vfs,\$libdir/polar_worker,\$libdir/pg_stat_statements,\$libdir/auth_delay,\$libdir/auto_explain,\$libdir/polar_monitor_preload,\$libdir/polar_stat_sql'" >> ${primary_datadir}/postgresql.conf
+    echo "shared_preload_libraries = 'polar_px,polar_vfs,polar_worker,pg_stat_statements,auth_delay,auto_explain,polar_monitor_preload,polar_stat_sql,timescaledb'" >> ${primary_datadir}/postgresql.conf
 
     # shared dir initialization
     polar-initdb.sh ${primary_datadir}/ ${shared_datadir}/ localfs
