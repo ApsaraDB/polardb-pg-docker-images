@@ -33,9 +33,9 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: true
-          file: Dockerfile-devel-ubuntu20.04
+          file: Dockerfile-devel-ubuntu22.04
           tags: |
-            polardb/polardb_pg_devel:ubuntu20.04
+            polardb/polardb_pg_devel:ubuntu22.04
             polardb/polardb_pg_devel:latest
           platforms: linux/amd64, linux/arm64
 
@@ -43,7 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        base_image: [ centos7, ubuntu22.04 ]
+        base_image: [ centos7, ubuntu20.04 ]
     steps:
       # Checkout source code
       -

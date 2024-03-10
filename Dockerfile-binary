@@ -1,4 +1,4 @@
-FROM polardb/polardb_pg_devel:ubuntu20.04 AS building
+FROM polardb/polardb_pg_devel:ubuntu22.04 AS building
 LABEL maintainer="mrdrivingduck@gmail.com"
 
 # Copy source code
@@ -29,7 +29,7 @@ RUN wget --no-verbose https://github.com/timescale/timescaledb/archive/refs/tags
     make -s -j$(nproc) && \
     make -s install
 
-FROM polardb/polardb_pg_devel:ubuntu20.04
+FROM polardb/polardb_pg_devel:ubuntu22.04
 LABEL maintainer="mrdrivingduck@gmail.com"
 
 # Copy binary
