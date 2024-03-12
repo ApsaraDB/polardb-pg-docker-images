@@ -37,7 +37,6 @@ RUN yum install -y \
         openldap-devel \
         openldap-clients \
         openldap-servers \
-        openssl-devel \
         libuuid-devel \
         xerces-c-devel \
         bison \
@@ -84,6 +83,7 @@ RUN yum install -y \
 ENV GITHUB_PROXY=
 
 ENV ZLOG_VERSION=1.2.14
+ENV OPENSSL_VERSION=OpenSSL_1_1_1k
 ENV PFSD_VERSION=pfsd4pg-release-1.2.42-20220419
 
 # install dependencies from GitHub mirror
@@ -92,6 +92,8 @@ RUN cd /usr/local && \
     wget --no-verbose --no-check-certificate "${GITHUB_PROXY}https://github.com/HardySimpson/zlog/archive/refs/tags/${ZLOG_VERSION}.tar.gz" && \
     # PFSD
     wget --no-verbose --no-check-certificate "${GITHUB_PROXY}https://github.com/ApsaraDB/PolarDB-FileSystem/archive/refs/tags/${PFSD_VERSION}.tar.gz" && \
+    # OpenSSL 1.1.1
+    wget --no-verbose --no-check-certificate "${GITHUB_PROXY}https://github.com/openssl/openssl/archive/refs/tags/${OPENSSL_VERSION}.tar.gz" && \
     # enable build tools
     echo "source /opt/rh/devtoolset-9/enable" >> /etc/bashrc && \
     echo "source /opt/rh/llvm-toolset-7.0/enable" >> /etc/bashrc && \
@@ -115,6 +117,16 @@ RUN cd /usr/local && \
     cd .. && \
     rm -rf $PFSD_VERSION* && \
     rm -rf PolarDB-FileSystem-$PFSD_VERSION* && \
+    # unzip and install OpenSSL 1.1.1
+    gzip -d $OPENSSL_VERSION.tar.gz && \
+    tar xpf $OPENSSL_VERSION.tar && \
+    cd openssl-$OPENSSL_VERSION && \
+    ./config --prefix=/usr/local/openssl && make -j8 && make install && \
+    cp /usr/local/openssl/lib/lib* /usr/local/lib/ && \
+    cp -r /usr/local/openssl/include/openssl /usr/local/include/ && \
+    cd .. && \
+    rm -rf $OPENSSL_VERSION* && \
+    rm -rf openssl-$OPENSSL_VERSION && \
     ldconfig
 
 # add software repository of Node.js LTS
