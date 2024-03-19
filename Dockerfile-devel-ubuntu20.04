@@ -55,6 +55,7 @@ RUN apt install -y \
         libxerces-c-dev \
         tcl-dev \
         libperl-dev \
+        libexpect-perl \
         libipc-run-perl \
         libaio-dev \
         libfuse-dev && \
