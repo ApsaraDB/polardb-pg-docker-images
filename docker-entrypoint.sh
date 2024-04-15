@@ -74,7 +74,7 @@ polardb_init() {
         echo "port = $port
             polar_hostid = $i" >> $dir/postgresql.conf
 
-        echo "primary_conninfo = 'host=localhost port=$primary_port user=postgres dbname=postgres application_name=replica${i}'" >> $dir/recovery.conf
+        echo "primary_conninfo = 'host=127.0.0.1 port=$primary_port user=postgres dbname=postgres application_name=replica${i}'" >> $dir/recovery.conf
         echo "primary_slot_name = 'replica${i}'" >> $dir/recovery.conf
         echo "synchronous_standby_names='replica${i}'" >> $dir/postgresql.conf
         echo "polar_replica = on" >> $dir/recovery.conf
