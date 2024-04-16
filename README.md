@@ -4,19 +4,17 @@
 
 [`polardb/polardb_pg_devel`](https://hub.docker.com/r/polardb/polardb_pg_devel/tags) provides runtime environment and compilation dependencies for PolarDB-PG. According to the base OS being used, it includes following tags:
 
-- `ubuntu20.04` (`latest`): use [`ubuntu:20.04`](https://hub.docker.com/_/ubuntu/tags) as base OS
+- `ubuntu22.04` (`latest`): use [`ubuntu:22.04`](https://hub.docker.com/_/ubuntu/tags) as base OS
+- `ubuntu20.04`: use [`ubuntu:20.04`](https://hub.docker.com/_/ubuntu/tags) as base OS
 - `centos7` (DEPRECATED): use [`centos:centos7`](https://hub.docker.com/_/centos/tags) as base OS
 
 ## Binary Image
 
-[`polardb/polardb_pg_binary`](https://hub.docker.com/r/polardb/polardb_pg_binary/tags) is based on `polardb/polardb_pg_devel:latest`, providing latest binary built from stable branch of PolarDB-PG. This image is enough for running PolarDB-PG. According to the storage type used by PolarDB-PG, it includes following tags:
-
-- `localfs`: the PolarDB-PG binary is compiled with local file system, so it can use local disk as its storage
-- `pfs`: the PolarDB-PG binary is compiled with PolarDB File System (PFS) SDK, so it can use shared disk as its storage
+[`polardb/polardb_pg_binary`](https://hub.docker.com/r/polardb/polardb_pg_binary/tags) is based on `polardb/polardb_pg_devel:latest`, providing latest binary built from stable branch of PolarDB-PG. This image is enough for running PolarDB-PG.
 
 ## Local Instance Image
 
-[`polardb/polardb_pg_local_instance`](https://hub.docker.com/r/polardb/polardb_pg_local_instance/tags) is based on `polardb/polardb_pg_binary:localfs`, with an entrypoint for initializing and starting-up PolarDB-PG instance on local file system.
+[`polardb/polardb_pg_local_instance`](https://hub.docker.com/r/polardb/polardb_pg_local_instance/tags) is based on `polardb/polardb_pg_binary:latest`, with an entrypoint for initializing and starting-up PolarDB-PG instance on local file system.
 
 ### Without Data Persistence
 
