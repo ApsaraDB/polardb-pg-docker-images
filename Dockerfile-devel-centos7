@@ -72,7 +72,7 @@ RUN yum install -y \
         which  \
         binutils\
         libtool \
-        perf  \
+        perf \
         make sudo \
         wget \
         util-linux && \
@@ -128,14 +128,6 @@ RUN cd /usr/local && \
     rm -rf $OPENSSL_VERSION* && \
     rm -rf openssl-$OPENSSL_VERSION && \
     ldconfig
-
-# add software repository of Node.js LTS
-# @see https://github.com/nodesource/distributions
-# use yarn for documentation development
-# RUN curl -fsSL https://rpm.nodesource.com/setup_16.x | bash - && \
-#     curl -sL https://dl.yarnpkg.com/rpm/yarn.repo | tee /etc/yum.repos.d/yarn.repo && \
-#     yum install -y yarn && \
-#     yum clean all
 
 # create default user
 ENV USER_NAME=postgres

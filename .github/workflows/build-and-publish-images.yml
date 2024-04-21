@@ -43,7 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        base_image: [ centos7, ubuntu20.04 ]
+        base_image: [ centos7, anolis8, ubuntu20.04 ]
     steps:
       # Checkout source code
       -
