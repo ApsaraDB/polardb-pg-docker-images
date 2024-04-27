@@ -70,12 +70,14 @@ RUN yum install -y \
         tar  \
         shadow-utils \
         which  \
-        binutils\
+        binutils \
         libtool \
         perf \
         make sudo \
         wget \
-        util-linux && \
+        util-linux \
+        rpm-build \
+        && \
     yum clean all
 
 # set to empty if GitHub is not barriered

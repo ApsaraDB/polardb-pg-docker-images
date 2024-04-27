@@ -59,7 +59,9 @@ RUN dnf install -y \
         wget \
         sudo \
         vim \
-        git && \
+        git \
+        rpm-build \
+        && \
     dnf clean all
 
 # set to empty if GitHub is not barriered
