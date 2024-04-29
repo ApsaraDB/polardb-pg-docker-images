@@ -1,0 +1,126 @@
+FROM rockylinux:8
+
+LABEL maintainer="mrdrivingduck@gmail.com"
+
+CMD bash
+
+# avoid missing locale problem
+RUN sed -i 's/override_install_langs/# &/' /etc/yum.conf
+
+# install EPEL
+RUN dnf distro-sync -y && \
+    dnf upgrade --refresh && \
+    dnf --enablerepo=powertools install -y \
+        epel-release && \
+    dnf clean all
+
+# GCC (force 10) and LLVM (should be 16)
+RUN dnf install -y \
+        gcc-toolset-10-gcc \
+        gcc-toolset-10-gcc-c++ \
+        gcc-toolset-10-gdb \
+        cmake \
+        clang \
+        llvm-devel \
+        && \
+    dnf clean all
+
+# Dependencies
+RUN dnf install -y \
+        bison \
+        flex \
+        readline-devel \
+        zlib-devel \
+        openssl-devel \
+        libicu-devel \
+        perl-ExtUtils-Embed \
+        pam-devel \
+        libxml2-devel \
+        libxslt-devel \
+        openldap-devel \
+        libuuid-devel \
+        lz4-devel \
+        libzstd-devel \
+        gettext \
+        xerces-c-devel \
+        tcl-devel \
+        python3-devel \
+        libaio-devel \
+        fuse-devel \
+        perl-Test-Simple && \
+    dnf clean all
+
+RUN dnf --enablerepo=powertools install -y \
+        perl-IPC-Run && \
+    dnf clean all
+
+# Tools
+RUN dnf install -y \
+        wget \
+        sudo \
+        vim \
+        git \
+        rpm-build \
+        && \
+    dnf clean all
+
+# set to empty if GitHub is not barriered
+# ENV GITHUB_PROXY=https://ghproxy.com/
+ENV GITHUB_PROXY=
+
+ENV ZLOG_VERSION=1.2.14
+ENV PFSD_VERSION=pfsd4pg-release-1.2.42-20220419
+
+# install dependencies from GitHub mirror
+RUN cd /usr/local && \
+    # zlog for PFSD
+    wget --no-verbose --no-check-certificate "${GITHUB_PROXY}https://github.com/HardySimpson/zlog/archive/refs/tags/${ZLOG_VERSION}.tar.gz" && \
+    # PFSD
+    wget --no-verbose --no-check-certificate "${GITHUB_PROXY}https://github.com/ApsaraDB/PolarDB-FileSystem/archive/refs/tags/${PFSD_VERSION}.tar.gz" && \
+    # unzip and install zlog
+    gzip -d $ZLOG_VERSION.tar.gz && \
+    tar xpf $ZLOG_VERSION.tar && \
+    cd zlog-$ZLOG_VERSION && \
+    make && make install && \
+    echo '/usr/local/lib' >> /etc/ld.so.conf && ldconfig && \
+    cd .. && \
+    rm -rf $ZLOG_VERSION* && \
+    rm -rf zlog-$ZLOG_VERSION && \
+    # unzip and install PFSD
+    gzip -d $PFSD_VERSION.tar.gz && \
+    tar xpf $PFSD_VERSION.tar && \
+    cd PolarDB-FileSystem-$PFSD_VERSION && \
+    sed -i 's/-march=native //' CMakeLists.txt && \
+    ./autobuild.sh && ./install.sh && \
+    cd .. && \
+    rm -rf $PFSD_VERSION* && \
+    rm -rf PolarDB-FileSystem-$PFSD_VERSION* && \
+    ldconfig
+
+# create default user
+ENV USER_NAME=postgres
+RUN echo "create default user" && \
+    groupadd -r $USER_NAME -g 1000 && \
+    useradd -u 1000 -g $USER_NAME $USER_NAME -p '' && \
+    usermod -aG wheel $USER_NAME
+
+WORKDIR /home/$USER_NAME
+
+# modify conf
+RUN echo "modify conf" && \
+    mkdir -p /var/log/pfs && chown $USER_NAME /var/log/pfs && \
+    mkdir -p /var/run/pfs && chown $USER_NAME /var/run/pfs && \
+    mkdir -p /var/run/pfsd && chown $USER_NAME /var/run/pfsd && \
+    mkdir -p /dev/shm/pfsd && chown $USER_NAME /dev/shm/pfsd && \
+    touch /var/run/pfsd/.pfsd && \
+    chkconfig --add pfsd_env && \
+    echo "ulimit -c unlimited" >> /home/postgres/.bashrc && \
+    echo "export PGHOST=127.0.0.1" >> /home/postgres/.bashrc && \
+    echo "alias pg='psql -h /home/postgres/tmp_master_dir_polardb_pg_1100_bld/'" >> /home/postgres/.bashrc && \
+    rm /etc/localtime && \
+    cp /usr/share/zoneinfo/UTC /etc/localtime && \
+    sed -i 's/vim/vi/g' /root/.bashrc
+
+ENV PATH="/home/postgres/tmp_basedir_polardb_pg_1100_bld/bin:$PATH"
+
+USER $USER_NAME
