@@ -1,93 +1,77 @@
-FROM centos:centos7
+FROM rockylinux:9
 
 LABEL maintainer="mrdrivingduck@gmail.com"
 
 CMD bash
 
-# avoid missing locale problem
-RUN sed -i 's/override_install_langs/# &/' /etc/yum.conf
+# install EPEL
+RUN dnf distro-sync -y && \
+    dnf upgrade --refresh && \
+    dnf install -y epel-release && \
+    dnf install -y glibc-all-langpacks && \
+    dnf clean all
 
-# add EPEL and scl source
-RUN rpmkeys --import file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7 && \
-    yum install -y epel-release centos-release-scl && \
-    rpmkeys --import file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7 && \
-    rpmkeys --import file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-SIG-SCLo && \
-    yum update -y && \
-    yum clean all
+# GCC (should be 11) and LLVM (should be 16)
+RUN dnf install -y \
+        gcc \
+        gcc-c++ \
+        gdb \
+        cmake \
+        clang \
+        llvm-devel \
+        && \
+    dnf clean all
 
-# GCC and LLVM
-RUN yum install -y \
-        devtoolset-9-gcc \
-        devtoolset-9-gcc-c++ \
-        devtoolset-9-gdb \
-        devtoolset-9-libstdc++-devel \
-        devtoolset-9-make \
-        llvm-toolset-7.0-llvm-devel \
-        llvm-toolset-7.0-clang-devel \
-        cmake3 && \
-    yum clean all
-
-# dependencies
-RUN yum install -y \
+# Dependencies
+RUN dnf install -y \
         bison \
         flex \
-        fuse-devel \
         gettext \
         krb5-devel \
-        krb5-server \
-        krb5-workstation \
         libaio-devel \
         libicu-devel \
         libunwind-devel \
         libuuid-devel \
         libxml2-devel \
         libxslt-devel \
-        openldap-clients \
+        libzstd-devel \
+        lz4-devel \
         openldap-devel \
-        openldap-servers \
+        openssl-devel \
         pam-devel \
-        perl-DBD-Pg \
-        perl-Expect \
         perl-ExtUtils-Embed \
-        perl-ExtUtils-MakeMaker \
-        perl-IPC-Run \
         perl-Test-Simple \
-        protobuf-devel \
-        python-devel \
+        python3-devel \
         readline-devel \
         tcl-devel \
         xerces-c-devel \
         zlib-devel \
         && \
-    ln /usr/lib64/perl5/CORE/libperl.so /usr/lib64/libperl.so && \
-    yum clean all
+    dnf --enablerepo=crb install -y \
+        fuse-devel \
+        perl-FindBin \
+        perl-IPC-Run \
+        perl-Opcode \
+        && \
+    dnf clean all
 
-# install basic tools
-RUN yum install -y \
-        git lcov psmisc sudo vim \
-        less  \
-        net-tools  \
-        python2-psycopg2 \
-        python2-requests  \
-        tar  \
-        shadow-utils \
-        which  \
-        binutils \
-        libtool \
-        perf \
-        make sudo \
+# Tools
+RUN dnf install -y \
+        chkconfig \
+        iproute \
         wget \
-        util-linux \
+        sudo \
+        vim \
+        git \
         rpm-build \
         && \
-    yum clean all
+    dnf clean all
 
 # set to empty if GitHub is not barriered
 # ENV GITHUB_PROXY=https://ghproxy.com/
 ENV GITHUB_PROXY=
 
 ENV ZLOG_VERSION=1.2.14
-ENV OPENSSL_VERSION=OpenSSL_1_1_1k
 ENV PFSD_VERSION=pfsd4pg-release-1.2.42-20220419
 
 # install dependencies from GitHub mirror
@@ -96,13 +80,6 @@ RUN cd /usr/local && \
     wget --no-verbose --no-check-certificate "${GITHUB_PROXY}https://github.com/HardySimpson/zlog/archive/refs/tags/${ZLOG_VERSION}.tar.gz" && \
     # PFSD
     wget --no-verbose --no-check-certificate "${GITHUB_PROXY}https://github.com/ApsaraDB/PolarDB-FileSystem/archive/refs/tags/${PFSD_VERSION}.tar.gz" && \
-    # OpenSSL 1.1.1
-    wget --no-verbose --no-check-certificate "${GITHUB_PROXY}https://github.com/openssl/openssl/archive/refs/tags/${OPENSSL_VERSION}.tar.gz" && \
-    # enable build tools
-    echo "source /opt/rh/devtoolset-9/enable" >> /etc/bashrc && \
-    echo "source /opt/rh/llvm-toolset-7.0/enable" >> /etc/bashrc && \
-    ln -s /usr/bin/cmake3 /usr/bin/cmake && \
-    source /etc/bashrc && \
     # unzip and install zlog
     gzip -d $ZLOG_VERSION.tar.gz && \
     tar xpf $ZLOG_VERSION.tar && \
@@ -121,23 +98,13 @@ RUN cd /usr/local && \
     cd .. && \
     rm -rf $PFSD_VERSION* && \
     rm -rf PolarDB-FileSystem-$PFSD_VERSION* && \
-    # unzip and install OpenSSL 1.1.1
-    gzip -d $OPENSSL_VERSION.tar.gz && \
-    tar xpf $OPENSSL_VERSION.tar && \
-    cd openssl-$OPENSSL_VERSION && \
-    ./config --prefix=/usr/local/openssl && make -j8 && make install && \
-    cp /usr/local/openssl/lib/lib* /usr/local/lib/ && \
-    cp -r /usr/local/openssl/include/openssl /usr/local/include/ && \
-    cd .. && \
-    rm -rf $OPENSSL_VERSION* && \
-    rm -rf openssl-$OPENSSL_VERSION && \
     ldconfig
 
 # create default user
 ENV USER_NAME=postgres
 RUN echo "create default user" && \
-    groupadd -r $USER_NAME && \
-    useradd -g $USER_NAME $USER_NAME -p '' && \
+    groupadd -r $USER_NAME -g 1000 && \
+    useradd -u 1000 -g $USER_NAME $USER_NAME -p '' && \
     usermod -aG wheel $USER_NAME
 
 WORKDIR /home/$USER_NAME
@@ -155,7 +122,6 @@ RUN echo "modify conf" && \
     echo "alias pg='psql -h /home/postgres/tmp_master_dir_polardb_pg_1100_bld/'" >> /home/postgres/.bashrc && \
     rm /etc/localtime && \
     cp /usr/share/zoneinfo/UTC /etc/localtime && \
-    sed -i 's/4096/unlimited/g' /etc/security/limits.d/20-nproc.conf && \
     sed -i 's/vim/vi/g' /root/.bashrc
 
 ENV PATH="/home/postgres/tmp_basedir_polardb_pg_1100_bld/bin:$PATH"

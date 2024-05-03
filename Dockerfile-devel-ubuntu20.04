@@ -37,28 +37,30 @@ RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
 
 # Dependencies
 RUN apt install -y \
-        libicu-dev \
         bison \
         flex \
-        python3-dev \
-        libreadline-dev \
+        gettext \
+        libaio-dev \
+        libexpect-perl \
+        libfuse-dev \
         libgss-dev \
-        libssl-dev \
+        libicu-dev \
+        libipc-run-perl \
+        libkrb5-dev \
+        libldap2-dev \
+        liblz4-dev \
         libpam0g-dev \
+        libperl-dev \
+        libreadline-dev \
+        libssl-dev \
+        libunwind-dev \
+        libxerces-c-dev \
         libxml2-dev \
         libxslt1-dev \
-        libldap2-dev \
-        uuid-dev \
-        liblz4-dev \
-        libkrb5-dev \
-        gettext \
-        libxerces-c-dev \
+        python3-dev \
         tcl-dev \
-        libperl-dev \
-        libexpect-perl \
-        libipc-run-perl \
-        libaio-dev \
-        libfuse-dev && \
+        uuid-dev \
+        && \
     apt clean -y
 
 # Tools

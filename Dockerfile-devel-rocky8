@@ -4,14 +4,12 @@ LABEL maintainer="mrdrivingduck@gmail.com"
 
 CMD bash
 
-# avoid missing locale problem
-RUN sed -i 's/override_install_langs/# &/' /etc/yum.conf
-
 # install EPEL
 RUN dnf distro-sync -y && \
     dnf upgrade --refresh && \
     dnf --enablerepo=powertools install -y \
         epel-release && \
+    dnf install -y glibc-all-langpacks && \
     dnf clean all
 
 # GCC (force 10) and LLVM (should be 16)
@@ -29,33 +27,35 @@ RUN dnf install -y \
 RUN dnf install -y \
         bison \
         flex \
-        readline-devel \
-        zlib-devel \
-        openssl-devel \
+        fuse-devel \
+        gettext \
+        krb5-devel \
+        libaio-devel \
         libicu-devel \
-        perl-ExtUtils-Embed \
-        pam-devel \
+        libunwind-devel \
+        libuuid-devel \
         libxml2-devel \
         libxslt-devel \
-        openldap-devel \
-        libuuid-devel \
-        lz4-devel \
         libzstd-devel \
-        gettext \
-        xerces-c-devel \
-        tcl-devel \
+        lz4-devel \
+        openldap-devel \
+        openssl-devel \
+        pam-devel \
+        perl-ExtUtils-Embed \
+        perl-Test-Simple \
         python3-devel \
-        libaio-devel \
-        fuse-devel \
-        perl-Test-Simple && \
-    dnf clean all
-
-RUN dnf --enablerepo=powertools install -y \
+        readline-devel \
+        tcl-devel \
+        xerces-c-devel \
+        zlib-devel \
+        && \
+    dnf --enablerepo=powertools install -y \
         perl-IPC-Run && \
     dnf clean all
 
 # Tools
 RUN dnf install -y \
+        iproute \
         wget \
         sudo \
         vim \
