@@ -119,8 +119,9 @@ RUN cd /usr/local && \
 # create default user
 ENV USER_NAME=postgres
 RUN echo "create default user" && \
+    deluser ubuntu && \
     groupadd -r $USER_NAME && \
-    useradd -ms /bin/bash -g $USER_NAME $USER_NAME -p '' && \
+    useradd -u 1000 -ms /bin/bash -g $USER_NAME $USER_NAME -p '' && \
     usermod -aG sudo $USER_NAME
 
 # modify conf
