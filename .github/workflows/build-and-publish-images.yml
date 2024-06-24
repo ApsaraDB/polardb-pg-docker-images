@@ -29,6 +29,13 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       -
+        name: Login to the ghcr
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      -
         name: Build and push development image with 'latest' tag
         uses: docker/build-push-action@v5
         with:
@@ -37,6 +44,8 @@ jobs:
           tags: |
             polardb/polardb_pg_devel:ubuntu22.04
             polardb/polardb_pg_devel:latest
+            ghcr.io/mrdrivingduck/polardb_pg_devel:ubuntu22.04
+            ghcr.io/mrdrivingduck/polardb_pg_devel:latest
           platforms: linux/amd64, linux/arm64
 
   build-and-publish-dev-image-others:
@@ -62,12 +71,21 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       -
+        name: Login to the ghcr
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      -
         name: Build and push other development images
         uses: docker/build-push-action@v5
         with:
           push: true
           file: Dockerfile-devel-${{ matrix.base_image }}
-          tags: polardb/polardb_pg_devel:${{ matrix.base_image }}
+          tags: |
+            polardb/polardb_pg_devel:${{ matrix.base_image }}
+            ghcr.io/mrdrivingduck/polardb_pg_devel:${{ matrix.base_image }}
           platforms: linux/amd64, linux/arm64
 
   build-and-publish-binary-image:
@@ -88,14 +106,22 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      # build instance images
+      -
+        name: Login to the ghcr
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       -
         name: Build and push binary image
         uses: docker/build-push-action@v5
         with:
           push: true
           file: Dockerfile-binary
-          tags: polardb/polardb_pg_binary:latest
+          tags: |
+            polardb/polardb_pg_binary:latest
+            ghcr.io/mrdrivingduck/polardb_pg_binary:latest
           platforms: linux/amd64, linux/arm64
 
   build-and-publish-instance-image:
@@ -117,12 +143,20 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      # build instance images
+      -
+        name: Login to the ghcr
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       -
         name: Build and push instance image
         uses: docker/build-push-action@v5
         with:
           push: true
           file: Dockerfile-local-instance
-          tags: polardb/polardb_pg_local_instance:latest
+          tags: |
+            polardb/polardb_pg_local_instance:latest
+            ghcr.io/mrdrivingduck/polardb_pg_local_instance:latest
           platforms: linux/amd64, linux/arm64
