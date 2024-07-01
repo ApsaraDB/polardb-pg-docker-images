@@ -44,15 +44,15 @@ jobs:
           tags: |
             polardb/polardb_pg_devel:ubuntu22.04
             polardb/polardb_pg_devel:latest
-            ghcr.io/mrdrivingduck/polardb_pg_devel:ubuntu22.04
-            ghcr.io/mrdrivingduck/polardb_pg_devel:latest
+            ghcr.io/apsaradb/polardb_pg_devel:ubuntu22.04
+            ghcr.io/apsaradb/polardb_pg_devel:latest
           platforms: linux/amd64, linux/arm64
 
   build-and-publish-dev-image-others:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        base_image: [ centos7, anolis8, rocky8, rocky9, ubuntu20.04, ubuntu24.04 ]
+        base_image: [ anolis8, rocky8, rocky9, ubuntu20.04, ubuntu24.04 ]
     steps:
       # Checkout source code
       -
@@ -85,7 +85,7 @@ jobs:
           file: Dockerfile-devel-${{ matrix.base_image }}
           tags: |
             polardb/polardb_pg_devel:${{ matrix.base_image }}
-            ghcr.io/mrdrivingduck/polardb_pg_devel:${{ matrix.base_image }}
+            ghcr.io/apsaradb/polardb_pg_devel:${{ matrix.base_image }}
           platforms: linux/amd64, linux/arm64
 
   build-and-publish-binary-image:
@@ -121,7 +121,7 @@ jobs:
           file: Dockerfile-binary
           tags: |
             polardb/polardb_pg_binary:latest
-            ghcr.io/mrdrivingduck/polardb_pg_binary:latest
+            ghcr.io/apsaradb/polardb_pg_binary:latest
           platforms: linux/amd64, linux/arm64
 
   build-and-publish-instance-image:
@@ -158,5 +158,5 @@ jobs:
           file: Dockerfile-local-instance
           tags: |
             polardb/polardb_pg_local_instance:latest
-            ghcr.io/mrdrivingduck/polardb_pg_local_instance:latest
+            ghcr.io/apsaradb/polardb_pg_local_instance:latest
           platforms: linux/amd64, linux/arm64
