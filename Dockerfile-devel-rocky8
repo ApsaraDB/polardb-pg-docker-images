@@ -12,7 +12,7 @@ RUN dnf distro-sync -y && \
     dnf install -y glibc-all-langpacks && \
     dnf clean all
 
-# GCC (force 10) and LLVM (should be 16)
+# GCC (force 10) and LLVM (should be 17)
 RUN dnf install -y \
         gcc-toolset-10-gcc \
         gcc-toolset-10-gcc-c++ \

@@ -11,7 +11,7 @@ RUN dnf distro-sync -y && \
     dnf install -y glibc-all-langpacks && \
     dnf clean all
 
-# GCC (should be 11) and LLVM (should be 16)
+# GCC (should be 11) and LLVM (should be 17)
 RUN dnf install -y \
         gcc \
         gcc-c++ \

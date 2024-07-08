@@ -11,7 +11,7 @@ RUN dnf upgrade -y --refresh && \
     dnf install -y glibc-all-langpacks && \
     dnf clean all
 
-# GCC and LLVM
+# GCC and LLVM (should be 15)
 RUN dnf install -y \
         gcc \
         gcc-c++ \
