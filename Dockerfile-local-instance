@@ -1,4 +1,6 @@
-FROM polardb/polardb_pg_binary:latest
+ARG binary_image_tag=
+
+FROM polardb/polardb_pg_binary:${binary_image_tag}
 LABEL maintainer="mrdrivingduck@gmail.com"
 
 ENV PATH="/home/postgres/tmp_basedir_polardb_pg_1100_bld/bin:$PATH"
