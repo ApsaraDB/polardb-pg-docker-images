@@ -1,6 +1,13 @@
 FROM ubuntu:20.04
+
+ARG TARGETARCH
 LABEL maintainer="mrdrivingduck@gmail.com"
+
+COPY misc/pg_bsd_indent_$TARGETARCH /usr/bin/pg_bsd_indent
+
 CMD bash
+
+ENV PATH="/home/postgres/tmp_polardb_pg_17_base/bin:/home/postgres/tmp_polardb_pg_16_base/bin:/home/postgres/tmp_polardb_pg_15_base/bin:/home/postgres/tmp_basedir_polardb_pg_1100_bld/bin:$PATH"
 
 # Timezone problem
 ENV TZ=Asia/Shanghai
@@ -84,6 +91,9 @@ RUN apt install -y \
         protobuf-c-compiler && \
     apt clean -y
 
+# install perl module for TAP test
+RUN perl -MCPAN -e "CPAN::Shell->notest('install', 'SHANCOCK/Perl-Tidy-20230309.tar.gz')"
+
 # set to empty if GitHub is not barriered
 # ENV GITHUB_PROXY=https://ghproxy.com/
 ENV GITHUB_PROXY=
@@ -140,8 +150,10 @@ RUN echo "modify conf" && \
     touch /var/run/pfsd/.pfsd && \
     echo "ulimit -c unlimited" >> /home/postgres/.bashrc && \
     echo "export PGHOST=127.0.0.1" >> /home/postgres/.bashrc && \
-    echo "alias pg='psql -h /home/postgres/tmp_master_dir_polardb_pg_1100_bld/'" >> /home/postgres/.bashrc
+    echo "export PATH=/home/postgres/tmp_polardb_pg_15_base/bin:\$PATH" >> /home/postgres/.bashrc && \
+    echo "export PATH=/home/postgres/tmp_polardb_pg_16_base/bin:\$PATH" >> /home/postgres/.bashrc && \
+    echo "export PATH=/home/postgres/tmp_polardb_pg_17_base/bin:\$PATH" >> /home/postgres/.bashrc && \
+    echo 'done'
 
-ENV PATH="/home/postgres/tmp_basedir_polardb_pg_1100_bld/bin:$PATH"
 WORKDIR /home/$USER_NAME
 USER $USER_NAME

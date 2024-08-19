@@ -1,8 +1,13 @@
 FROM openanolis/anolisos:8.6
 
+ARG TARGETARCH
 LABEL maintainer="mrdrivingduck@gmail.com"
 
+COPY misc/pg_bsd_indent_$TARGETARCH /usr/bin/pg_bsd_indent
+
 CMD bash
+
+ENV PATH="/home/postgres/tmp_polardb_pg_17_base/bin:/home/postgres/tmp_polardb_pg_16_base/bin:/home/postgres/tmp_polardb_pg_15_base/bin:/home/postgres/tmp_basedir_polardb_pg_1100_bld/bin:$PATH"
 
 # change to CentOS 8 Stream source, and install EPEL
 RUN dnf upgrade -y --refresh && \
@@ -41,6 +46,7 @@ RUN dnf install -y \
         openldap-devel \
         openssl-devel \
         pam-devel \
+        perl-CPAN \
         perl-IPC-Run \
         perl-ExtUtils-Embed \
         perl-Test-Simple \
@@ -61,6 +67,10 @@ RUN dnf install -y \
         rpm-build \
         && \
     dnf clean all
+
+# install perl module for TAP test
+RUN perl -MCPAN -e "CPAN::Shell->notest('install', 'Expect')" && \
+    perl -MCPAN -e "CPAN::Shell->notest('install', 'SHANCOCK/Perl-Tidy-20230309.tar.gz')"
 
 # set to empty if GitHub is not barriered
 # ENV GITHUB_PROXY=https://ghproxy.com/
@@ -114,11 +124,12 @@ RUN echo "modify conf" && \
     chkconfig --add pfsd_env && \
     echo "ulimit -c unlimited" >> /home/postgres/.bashrc && \
     echo "export PGHOST=127.0.0.1" >> /home/postgres/.bashrc && \
-    echo "alias pg='psql -h /home/postgres/tmp_master_dir_polardb_pg_1100_bld/'" >> /home/postgres/.bashrc && \
+    echo "export PATH=/home/postgres/tmp_polardb_pg_15_base/bin:\$PATH" >> /home/postgres/.bashrc && \
+    echo "export PATH=/home/postgres/tmp_polardb_pg_16_base/bin:\$PATH" >> /home/postgres/.bashrc && \
+    echo "export PATH=/home/postgres/tmp_polardb_pg_17_base/bin:\$PATH" >> /home/postgres/.bashrc && \
     rm /etc/localtime && \
     cp /usr/share/zoneinfo/UTC /etc/localtime && \
     sed -i 's/vim/vi/g' /root/.bashrc
 
-ENV PATH="/home/postgres/tmp_basedir_polardb_pg_1100_bld/bin:$PATH"
-
+WORKDIR /home/$USER_NAME
 USER $USER_NAME

@@ -1,8 +1,13 @@
 FROM centos:centos7
 
+ARG TARGETARCH
 LABEL maintainer="mrdrivingduck@gmail.com"
 
+COPY misc/pg_bsd_indent_$TARGETARCH /usr/bin/pg_bsd_indent
+
 CMD bash
+
+ENV PATH="/home/postgres/tmp_polardb_pg_17_base/bin:/home/postgres/tmp_polardb_pg_16_base/bin:/home/postgres/tmp_polardb_pg_15_base/bin:/home/postgres/tmp_basedir_polardb_pg_1100_bld/bin:$PATH"
 
 # avoid missing locale problem
 RUN sed -i 's/override_install_langs/# &/' /etc/yum.conf
@@ -152,12 +157,13 @@ RUN echo "modify conf" && \
     chkconfig --add pfsd_env && \
     echo "ulimit -c unlimited" >> /home/postgres/.bashrc && \
     echo "export PGHOST=127.0.0.1" >> /home/postgres/.bashrc && \
-    echo "alias pg='psql -h /home/postgres/tmp_master_dir_polardb_pg_1100_bld/'" >> /home/postgres/.bashrc && \
+    echo "export PATH=/home/postgres/tmp_polardb_pg_15_base/bin:\$PATH" >> /home/postgres/.bashrc && \
+    echo "export PATH=/home/postgres/tmp_polardb_pg_16_base/bin:\$PATH" >> /home/postgres/.bashrc && \
+    echo "export PATH=/home/postgres/tmp_polardb_pg_17_base/bin:\$PATH" >> /home/postgres/.bashrc && \
     rm /etc/localtime && \
     cp /usr/share/zoneinfo/UTC /etc/localtime && \
     sed -i 's/4096/unlimited/g' /etc/security/limits.d/20-nproc.conf && \
     sed -i 's/vim/vi/g' /root/.bashrc
 
-ENV PATH="/home/postgres/tmp_basedir_polardb_pg_1100_bld/bin:$PATH"
-
+WORKDIR /home/$USER_NAME
 USER $USER_NAME
