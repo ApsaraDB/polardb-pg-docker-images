@@ -19,6 +19,7 @@ RUN dnf distro-sync -y && \
 
 # GCC (force 10) and LLVM (should be 17)
 RUN dnf install -y \
+        autoconf \
         gcc-toolset-10-gcc \
         gcc-toolset-10-gcc-c++ \
         gcc-toolset-10-gdb \
@@ -56,7 +57,9 @@ RUN dnf install -y \
         zlib-devel \
         && \
     dnf --enablerepo=powertools install -y \
-        perl-IPC-Run && \
+        perl-File-Find-Rule \
+        perl-IPC-Run \
+        && \
     dnf clean all
 
 # Tools

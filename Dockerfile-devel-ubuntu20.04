@@ -18,10 +18,11 @@ RUN apt update -y && \
     apt upgrade -y && \
     apt clean -y
 
-# GCC (force to 9) and LLVM (force to 12)
+# GCC (force 10) and LLVM (force to 12)
 RUN apt install -y \
-        gcc-9 \
-        g++-9 \
+        autoconf \
+        gcc-10 \
+        g++-10 \
         llvm-12-dev \
         clang-12 \
         make \
@@ -29,8 +30,8 @@ RUN apt install -y \
         pkg-config \
         locales && \
     update-alternatives --install \
-        /usr/bin/gcc gcc /usr/bin/gcc-9 60 --slave \
-        /usr/bin/g++ g++ /usr/bin/g++-9 && \
+        /usr/bin/gcc gcc /usr/bin/gcc-10 60 --slave \
+        /usr/bin/g++ g++ /usr/bin/g++-10 && \
     update-alternatives --install \
         /usr/bin/llvm-config llvm-config /usr/bin/llvm-config-12 60 --slave \
         /usr/bin/clang++ clang++ /usr/bin/clang++-12 --slave \
@@ -49,6 +50,7 @@ RUN apt install -y \
         gettext \
         libaio-dev \
         libexpect-perl \
+        libfile-find-rule-perl \
         libfuse-dev \
         libgss-dev \
         libicu-dev \
