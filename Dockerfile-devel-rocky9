@@ -13,12 +13,14 @@ ENV PATH="/home/postgres/tmp_polardb_pg_17_base/bin:/home/postgres/tmp_polardb_p
 RUN dnf distro-sync -y && \
     dnf upgrade --refresh && \
     dnf install -y epel-release && \
-    dnf install -y glibc-all-langpacks && \
+    dnf install -y \
+        glibc-langpack-en \
+        glibc-langpack-zh \
+        && \
     dnf clean all
 
 # GCC (should be 13) and LLVM (should be 17)
 RUN dnf install -y \
-        autoconf \
         gcc \
         gcc-c++ \
         gdb \
@@ -34,6 +36,8 @@ RUN dnf install -y \
         flex \
         gettext \
         krb5-devel \
+        krb5-server \
+        krb5-workstation \
         libaio-devel \
         libicu-devel \
         libunwind-devel \
@@ -46,6 +50,7 @@ RUN dnf install -y \
         openssl-devel \
         pam-devel \
         perl-CPAN \
+        perl-DBI \
         perl-ExtUtils-Embed \
         perl-Test-Simple \
         python3-devel \
@@ -65,6 +70,7 @@ RUN dnf install -y \
 
 # Tools
 RUN dnf install -y \
+        autoconf \
         chkconfig \
         iproute \
         wget \
@@ -140,3 +146,6 @@ RUN echo "modify conf" && \
 
 WORKDIR /home/$USER_NAME
 USER $USER_NAME
+ENV LANG=en_US.UTF-8
+ENV LANGUAGE=en_US.UTF-8
+ENV LC_ALL=en_US.UTF-8

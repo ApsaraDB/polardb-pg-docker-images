@@ -14,12 +14,15 @@ RUN dnf distro-sync -y && \
     dnf upgrade --refresh && \
     dnf --enablerepo=powertools install -y \
         epel-release && \
-    dnf install -y glibc-all-langpacks && \
+    dnf remove -y langpacks-en && \
+    dnf install -y \
+        glibc-langpack-en \
+        glibc-langpack-zh \
+        && \
     dnf clean all
 
 # GCC (force 10) and LLVM (should be 17)
 RUN dnf install -y \
-        autoconf \
         gcc-toolset-10-gcc \
         gcc-toolset-10-gcc-c++ \
         gcc-toolset-10-gdb \
@@ -36,6 +39,8 @@ RUN dnf install -y \
         fuse-devel \
         gettext \
         krb5-devel \
+        krb5-server \
+        krb5-workstation \
         libaio-devel \
         libicu-devel \
         libunwind-devel \
@@ -48,6 +53,7 @@ RUN dnf install -y \
         openssl-devel \
         pam-devel \
         perl-CPAN \
+        perl-DBI \
         perl-ExtUtils-Embed \
         perl-Test-Simple \
         python3-devel \
@@ -64,6 +70,7 @@ RUN dnf install -y \
 
 # Tools
 RUN dnf install -y \
+        autoconf \
         iproute \
         wget \
         sudo \
@@ -128,6 +135,9 @@ RUN echo "modify conf" && \
     touch /var/run/pfsd/.pfsd && \
     chkconfig --add pfsd_env && \
     echo "ulimit -c unlimited" >> /home/postgres/.bashrc && \
+    echo "source /opt/rh/gcc-toolset-10/enable" >> /etc/bashrc && \
+    echo "source /opt/rh/gcc-toolset-10/enable" >> /root/.bashrc && \
+    echo "source /opt/rh/gcc-toolset-10/enable" >> /home/postgres/.bashrc && \
     echo "export PGHOST=127.0.0.1" >> /home/postgres/.bashrc && \
     echo "export PATH=/home/postgres/tmp_polardb_pg_15_base/bin:\$PATH" >> /home/postgres/.bashrc && \
     echo "export PATH=/home/postgres/tmp_polardb_pg_16_base/bin:\$PATH" >> /home/postgres/.bashrc && \
@@ -138,3 +148,6 @@ RUN echo "modify conf" && \
 
 WORKDIR /home/$USER_NAME
 USER $USER_NAME
+ENV LANG=en_US.UTF-8
+ENV LANGUAGE=en_US.UTF-8
+ENV LC_ALL=en_US.UTF-8

@@ -20,7 +20,6 @@ RUN apt update -y && \
 
 # GCC (force 10) and LLVM (force to 15)
 RUN apt install -y \
-        autoconf \
         gcc-10 \
         g++-10 \
         llvm-15-dev \
@@ -43,11 +42,16 @@ RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
     locale-gen
 
 # Dependencies
-RUN apt install -y \
+RUN DEBIAN_FRONTEND=noninteractive \
+    apt install -y \
         bison \
         flex \
         gettext \
+        krb5-admin-server \
+        krb5-kdc \
+        krb5-user \
         libaio-dev \
+        libdbi-perl \
         libexpect-perl \
         libfile-find-rule-perl \
         libfuse-dev \
@@ -74,6 +78,7 @@ RUN apt install -y \
 
 # Tools
 RUN apt install -y \
+        autoconf \
         iproute2 \
         wget \
         ccache \
@@ -152,3 +157,6 @@ RUN echo "modify conf" && \
 
 WORKDIR /home/$USER_NAME
 USER $USER_NAME
+ENV LANG=en_US.UTF-8
+ENV LANGUAGE=en_US.UTF-8
+ENV LC_ALL=en_US.UTF-8

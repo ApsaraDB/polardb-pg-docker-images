@@ -9,16 +9,19 @@ CMD bash
 
 ENV PATH="/home/postgres/tmp_polardb_pg_17_base/bin:/home/postgres/tmp_polardb_pg_16_base/bin:/home/postgres/tmp_polardb_pg_15_base/bin:/home/postgres/tmp_basedir_polardb_pg_1100_bld/bin:$PATH"
 
-# change to CentOS 8 Stream source, and install EPEL
+# install EPEL
 RUN dnf upgrade -y --refresh && \
     dnf install -y \
         epel-release epel-next-release && \
-    dnf install -y glibc-all-langpacks && \
+    dnf remove -y langpacks-en && \
+    dnf install -y \
+        glibc-langpack-en \
+        glibc-langpack-zh \
+        && \
     dnf clean all
 
 # GCC and LLVM (should be 15)
 RUN dnf install -y \
-        autoconf \
         gcc \
         gcc-c++ \
         gdb \
@@ -36,6 +39,8 @@ RUN dnf install -y \
         fuse-devel \
         gettext \
         krb5-devel \
+        krb5-server \
+        krb5-workstation \
         libaio-devel \
         libicu-devel \
         libunwind-devel \
@@ -48,6 +53,7 @@ RUN dnf install -y \
         openssl-devel \
         pam-devel \
         perl-CPAN \
+        perl-DBI \
         perl-IPC-Run \
         perl-ExtUtils-Embed \
         perl-File-Find-Rule \
@@ -62,6 +68,7 @@ RUN dnf install -y \
 
 # Tools
 RUN dnf install -y \
+        autoconf \
         wget \
         sudo \
         vim \
@@ -135,3 +142,6 @@ RUN echo "modify conf" && \
 
 WORKDIR /home/$USER_NAME
 USER $USER_NAME
+ENV LANG=en_US.UTF-8
+ENV LANGUAGE=en_US.UTF-8
+ENV LC_ALL=en_US.UTF-8
