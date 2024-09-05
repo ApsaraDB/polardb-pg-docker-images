@@ -12,39 +12,42 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - name: Get submodule version
+
+      - name: get submodule version
         id: version
         run: |
           sha=$(git submodule status -- ./PolarDB-for-PostgreSQL/ | awk '{print $1}')
-          pg_version=$(grep AC_INIT ./PolarDB-for-PostgreSQL/configure.in | awk -F'[][]' '{print $4}')
-          pg_majorversion=$(grep AC_INIT ./PolarDB-for-PostgreSQL/configure.in | awk -F '[][]' '{split($4, v, "."); print v[1]}')
-          polar_majorversion=2.0.${pg_version}
-          polar_minorversion=$(grep -A 1 '&polar_version' ./PolarDB-for-PostgreSQL/src/backend/utils/misc/guc.c | awk 'NR==2{print}' | awk -F'[."]' '{print $4}').0
+          pg_version=$(grep AC_INIT ./PolarDB-for-PostgreSQL/configure.ac | awk -F'[][]' '{print $4}')
+          pg_majorversion=$(grep AC_INIT ./PolarDB-for-PostgreSQL/configure.ac | awk -F '[][]' '{split($4, v, "."); print v[1]}')
+          polar_majorversion=${pg_version}
+          polar_minorversion=$(grep '^POLAR_MINORVERSION' ./PolarDB-for-PostgreSQL/configure.ac | cut -d '"' -f2)
           echo "sha=${sha:0:8}" >> $GITHUB_OUTPUT
           echo "version=${polar_majorversion}.${polar_minorversion}" >> $GITHUB_OUTPUT
           echo "pg_majorversion=${pg_majorversion}" >> $GITHUB_OUTPUT
-      - name: Set up QEMU
+
+      - name: set up QEMU
         uses: docker/setup-qemu-action@v3
-      - name: Set up Docker Buildx
+      - name: set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      - name: Login to DockerHub
+      - name: login to DockerHub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Login to the ghcr
+      - name: login to the ghcr
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Login to Alibaba Cloud ACR
+      - name: login to Alibaba Cloud ACR
         uses: docker/login-action@v3
         with:
           registry: registry.cn-hangzhou.aliyuncs.com
           username: ${{ secrets.ALIBABA_CLOUD_ACR_USERNAME }}
           password: ${{ secrets.ALIBABA_CLOUD_ACR_PASSWORD }}
-      - name: Build and push binary image
+
+      - name: build and push binary image
         uses: docker/build-push-action@v5
         with:
           push: true
@@ -60,7 +63,8 @@ jobs:
             registry.cn-hangzhou.aliyuncs.com/polardb_pg/polardb_pg_binary:${{ steps.version.outputs.version }}
             registry.cn-hangzhou.aliyuncs.com/polardb_pg/polardb_pg_binary:${{ steps.version.outputs.version }}.${{ steps.version.outputs.sha }}
           platforms: linux/amd64, linux/arm64
-      - name: Build and push instance image
+
+      - name: build and push instance image
         uses: docker/build-push-action@v5
         with:
           push: true

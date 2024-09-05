@@ -3,7 +3,7 @@ ARG binary_image_tag=
 FROM polardb/polardb_pg_binary:${binary_image_tag}
 LABEL maintainer="mrdrivingduck@gmail.com"
 
-ENV PATH="/home/postgres/tmp_basedir_polardb_pg_1100_bld/bin:$PATH"
+ENV PATH="/u01/polardb_pg/bin:$PATH"
 ENV POLARDB_USER=
 ENV POLARDB_PASSWORD=
 ENV POLARDB_PORT=

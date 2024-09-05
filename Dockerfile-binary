@@ -6,34 +6,16 @@ WORKDIR /home/postgres/
 COPY ./PolarDB-for-PostgreSQL ./PolarDB-for-PostgreSQL
 
 # Compile and install PolarDB-PG
+USER root
 WORKDIR /home/postgres/PolarDB-for-PostgreSQL
-RUN sudo chown -R postgres:postgres ./
-RUN ./polardb_build.sh --with-pfsd --withpx --noinit
-
-# Install PostGIS
-WORKDIR /home/postgres
-RUN wget --no-verbose https://download.osgeo.org/postgis/source/postgis-3.3.2.tar.gz && \
-    tar -zxf postgis-3.3.2.tar.gz && \
-    cd postgis-3.3.2 && \
-    ./configure -q && \
-    make -s -j$(nproc) && \
-    make -s install
-
-# Install TimescaleDB
-WORKDIR /home/postgres
-RUN wget --no-verbose https://github.com/timescale/timescaledb/archive/refs/tags/2.3.1.tar.gz && \
-    tar -zxf 2.3.1.tar.gz && \
-    cd timescaledb-2.3.1 && \
-    ./bootstrap -DREGRESS_CHECKS=OFF && \
-    cd ./build && \
-    make -s -j$(nproc) && \
-    make -s install
+RUN ./build.sh --ec="--prefix=/u01/polardb_pg/ --with-pfsd" --debug=off --ni
 
 FROM polardb/polardb_pg_devel:ubuntu22.04
 LABEL maintainer="mrdrivingduck@gmail.com"
 
 # Copy binary
-COPY --from=building /home/postgres/tmp_basedir_polardb_pg_1100_bld/ /home/postgres/tmp_basedir_polardb_pg_1100_bld/
+COPY --from=building /u01/polardb_pg/ /u01/polardb_pg/
+COPY --from=building /home/postgres/PolarDB-for-PostgreSQL/src/backend/utils/misc/polardb.conf.sample /u01/polardb_pg/share
 
-RUN sudo chown -R postgres:postgres /home/postgres/tmp_*
-RUN sudo chmod -R 700 /home/postgres/tmp_*
+RUN sudo chown -R postgres:postgres /u01/polardb_pg/
+RUN sudo chmod -R 700 /u01/polardb_pg/
