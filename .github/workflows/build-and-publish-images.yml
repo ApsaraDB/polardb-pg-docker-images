@@ -18,7 +18,7 @@ jobs:
           sha=$(git submodule status -- ./PolarDB-for-PostgreSQL/ | awk '{print $1}')
           pg_version=$(grep AC_INIT ./PolarDB-for-PostgreSQL/configure.in | awk -F'[][]' '{print $4}')
           pg_majorversion=$(grep AC_INIT ./PolarDB-for-PostgreSQL/configure.in | awk -F '[][]' '{split($4, v, "."); print v[1]}')
-          polar_majorversion=2.0.${pg_version}
+          polar_majorversion=${pg_version}
           polar_minorversion=$(grep -A 1 '&polar_version' ./PolarDB-for-PostgreSQL/src/backend/utils/misc/guc.c | awk 'NR==2{print}' | awk -F'[."]' '{print $4}').0
           echo "sha=${sha:0:8}" >> $GITHUB_OUTPUT
           echo "version=${polar_majorversion}.${polar_minorversion}" >> $GITHUB_OUTPUT
