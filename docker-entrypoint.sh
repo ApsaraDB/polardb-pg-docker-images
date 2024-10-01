@@ -102,7 +102,7 @@ polardb_init() {
     then
         if [[ -n ${POLARDB_PASSWORD} ]];
         then
-            psql p $primary_port -d postgres -c "CREATE ROLE ${POLARDB_USER} PASSWORD '${POLARDB_PASSWORD}' SUPERUSER LOGIN"
+            psql -p $primary_port -d postgres -c "CREATE ROLE ${POLARDB_USER} PASSWORD '${POLARDB_PASSWORD}' SUPERUSER LOGIN"
         fi
     fi
 
