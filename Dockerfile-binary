@@ -8,7 +8,7 @@ COPY ./PolarDB-for-PostgreSQL ./PolarDB-for-PostgreSQL
 # Compile and install PolarDB-PG
 USER root
 WORKDIR /home/postgres/PolarDB-for-PostgreSQL
-RUN ./build.sh --ec="--prefix=/u01/polardb_pg/ --with-pfsd" --debug=off --ni
+RUN ./build.sh --ec="--prefix=/u01/polardb_pg/ --with-pfsd" --debug=off --ni --port=5432
 
 FROM polardb/polardb_pg_devel:ubuntu22.04
 LABEL maintainer="mrdrivingduck@gmail.com"
