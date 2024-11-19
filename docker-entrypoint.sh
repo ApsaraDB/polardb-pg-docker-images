@@ -106,6 +106,9 @@ polardb_init() {
         fi
     fi
 
+    # perform a checkpoint
+    psql -p $primary_port -d postgres -c "CHECKPOINT"
+
     # stop nodes
     for i in $(seq 1 $replica_num)
     do

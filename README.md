@@ -2,28 +2,32 @@
 
 ## Runtime/Development Image
 
-[`polardb/polardb_pg_devel`](https://hub.docker.com/r/polardb/polardb_pg_devel/tags) provides runtime environment and compilation dependencies for PolarDB-PG. According to the base OS being used, it includes following tags:
+[`polardb/polardb_pg_devel:${tag}`](https://hub.docker.com/r/polardb/polardb_pg_devel/tags) provides runtime environment and compilation dependencies for PolarDB-PG. According to the base OS being used, it includes following tags:
 
-- `ubuntu22.04` (`latest`): use [`ubuntu:22.04`](https://hub.docker.com/_/ubuntu/tags) as base OS
+- `ubuntu24.04`: use [`ubuntu:24.04`](https://hub.docker.com/_/ubuntu/tags) as base OS
+- `ubuntu22.04`: use [`ubuntu:22.04`](https://hub.docker.com/_/ubuntu/tags) as base OS
 - `ubuntu20.04`: use [`ubuntu:20.04`](https://hub.docker.com/_/ubuntu/tags) as base OS
+- `rocky9`: use [`rockylinux:9`](https://hub.docker.com/_/rockylinux/tags) as base OS
+- `rocky8`: use [`rockylinux:8`](https://hub.docker.com/_/rockylinux/tags) as base OS
+- `anolis8`: use [`openanolis/anolisos:8.6`](https://hub.docker.com/r/openanolis/anolisos/tags) as base OS
 - `centos7` (DEPRECATED): use [`centos:centos7`](https://hub.docker.com/_/centos/tags) as base OS
 
 ## Binary Image
 
-[`polardb/polardb_pg_binary`](https://hub.docker.com/r/polardb/polardb_pg_binary/tags) is based on `polardb/polardb_pg_devel:latest`, providing latest binary built from stable branch of PolarDB-PG. This image is enough for running PolarDB-PG.
+[`polardb/polardb_pg_binary:${tag}`](https://hub.docker.com/r/polardb/polardb_pg_binary/tags) is based on `polardb/polardb_pg_devel:22.04`, providing latest binary built from stable branch of PolarDB-PG. This image is enough for running PolarDB-PG.
 
 ## Local Instance Image
 
-[`polardb/polardb_pg_local_instance`](https://hub.docker.com/r/polardb/polardb_pg_local_instance/tags) is based on `polardb/polardb_pg_binary:latest`, with an entrypoint for initializing and starting-up PolarDB-PG instance on local file system.
+[`polardb/polardb_pg_local_instance:${tag}`](https://hub.docker.com/r/polardb/polardb_pg_local_instance/tags) is based on `polardb/polardb_pg_binary:${tag}`, with an entrypoint for initializing and starting-up PolarDB-PG instance on local file system.
 
 ### Without Data Persistence
 
 Simply try without persisting data directories. It will initialize database inside the container and start the database up. Override Docker `CMD` of image with `psql` to connect to the database:
 
 ```shell
-$ docker run -it --rm polardb/polardb_pg_local_instance psql
+$ docker run -it --rm polardb/polardb_pg_local_instance:15 psql
 ...
-psql (11.9)
+psql (PostgreSQL 15.8 (PolarDB 15.8.2.0 build unknown) on x86_64-linux-gnu)
 Type "help" for help.
 
 postgres=#
@@ -33,10 +37,10 @@ If you don't want to get into `psql`, simply override Docker `CMD` with other co
 
 ```shell
 $ docker run -it --rm \
-    polardb/polardb_pg_local_instance \
+    polardb/polardb_pg_local_instance:15 \
     bash
 ...
-postgres@f9b569fed05b:~$
+postgres@876f3bc68b4e:~$
 ```
 
 ### With Data Persistence
@@ -46,7 +50,7 @@ Use an empty local directory as a volume, and mount the volume when creating the
 ```shell
 docker run -it --rm \
     -v ${your_data_dir}:/var/polardb \
-    polardb/polardb_pg_local_instance \
+    polardb/polardb_pg_local_instance:15 \
     psql
 ```
 
@@ -57,7 +61,7 @@ For those who want to use PolarDB-PG as a daemon service, the container can be c
 ```shell
 docker run -d \
     -v ${your_data_dir}:/var/polardb \
-    polardb/polardb_pg_local_instance
+    polardb/polardb_pg_local_instance:15
 ```
 
 ### Exposing Ports
@@ -69,7 +73,7 @@ docker run -d \
     --env POLARDB_PORT=5432 \
     -p 5432-5434:5432-5434 \
     -v ${your_data_dir}:/var/polardb \
-    polardb/polardb_pg_local_instance
+    polardb/polardb_pg_local_instance:15
 ```
 
 Or directly use `--network=host` to share network with host machine:
@@ -79,10 +83,10 @@ $ docker run -d \
     --network=host \
     --env POLARDB_PORT=5432 \
     -v ${your_data_dir}:/var/polardb \
-    polardb/polardb_pg_local_instance
+    polardb/polardb_pg_local_instance:15
 $ ...
 $ psql -h 127.0.0.1 -p 5432 -U postgres
-psql (11.9)
+psql (PostgreSQL 15.8 (PolarDB 15.8.2.0 build unknown) on x86_64-linux-gnu)
 Type "help" for help.
 
 postgres=#
