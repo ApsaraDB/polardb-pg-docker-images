@@ -41,6 +41,10 @@ function init_primary() {
     cat /u01/polardb_pg/share/polardb.conf.sample >> $primary_dir/postgresql.conf
     echo "port = $port" >> $primary_dir/postgresql.conf
     echo "polar_datadir = 'file-dio://$data_dir'" >> $primary_dir/postgresql.conf
+
+    # avoid problem if huge page is not enough.
+    echo "huge_pages = off" >> $primary_dir/postgresql.conf
+
     echo "host all all 0.0.0.0/0 md5" >> $primary_dir/pg_hba.conf
     mkdir -p $data_dir
     polar-initdb.sh $primary_dir/ $data_dir/ primary localfs
