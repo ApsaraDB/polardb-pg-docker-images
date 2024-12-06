@@ -14,14 +14,10 @@ ENV TZ=Asia/Shanghai
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # Upgrade softwares
-RUN sed -i "s@http://\(deb\|security\).debian.org@http://mirrors.aliyun.com@g" /etc/apt/sources.list.d/debian.sources && \
-    sed -i "s@Suites: bookworm bookworm-updates@Suites: bookworm bookworm-updates bullseye@g" /etc/apt/sources.list.d/debian.sources && \
-    apt update -y && \
-    apt reinstall -y apt-transport-https ca-certificates && \
-    sed -i "s@http://mirrors.aliyun.com@https://mirrors.aliyun.com@g" /etc/apt/sources.list.d/debian.sources && \
+RUN sed -i "s@Suites: bookworm bookworm-updates@Suites: bookworm bookworm-updates bullseye@g" /etc/apt/sources.list.d/debian.sources && \
     apt update -y && \
     apt upgrade -y && \
-    apt clean -y 
+    apt clean -y
 
 # GCC (force 10) and LLVM (force to 15)
 RUN apt install -y \
