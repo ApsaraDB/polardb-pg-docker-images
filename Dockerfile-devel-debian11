@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM debian:11
 
 ARG TARGETARCH
 LABEL maintainer="mrdrivingduck@gmail.com"
@@ -18,12 +18,12 @@ RUN apt update -y && \
     apt upgrade -y && \
     apt clean -y
 
-# GCC (force 10) and LLVM (force 12)
+# GCC (force 10) and LLVM (force 16)
 RUN apt install -y \
         gcc-10 \
         g++-10 \
-        llvm-12-dev \
-        clang-12 \
+        llvm-16-dev \
+        clang-16 \
         make \
         gdb \
         pkg-config \
@@ -32,11 +32,10 @@ RUN apt install -y \
         /usr/bin/gcc gcc /usr/bin/gcc-10 60 --slave \
         /usr/bin/g++ g++ /usr/bin/g++-10 && \
     update-alternatives --install \
-        /usr/bin/llvm-config llvm-config /usr/bin/llvm-config-12 60 --slave \
-        /usr/bin/clang++ clang++ /usr/bin/clang++-12 --slave \
-        /usr/bin/clang clang /usr/bin/clang-12 && \
+        /usr/bin/llvm-config llvm-config /usr/bin/llvm-config-16 60 --slave \
+        /usr/bin/clang++ clang++ /usr/bin/clang++-16 --slave \
+        /usr/bin/clang clang /usr/bin/clang-16 && \
     apt clean -y
-
 # Generate locale
 RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
     sed -i '/zh_CN/s/^# //g' /etc/locale.gen && \
@@ -52,8 +51,8 @@ RUN DEBIAN_FRONTEND=noninteractive \
         krb5-kdc \
         krb5-user \
         libaio-dev \
-        libexpect-perl \
         libdbi-perl \
+        libexpect-perl \
         libfile-find-rule-perl \
         libfuse-dev \
         libgss-dev \
@@ -71,6 +70,7 @@ RUN DEBIAN_FRONTEND=noninteractive \
         libxml2-dev \
         libxslt1-dev \
         python3-dev \
+        python3-distutils-extra \
         tcl-dev \
         uuid-dev \
         && \
@@ -132,14 +132,6 @@ RUN cd /usr/local && \
     cd .. && \
     rm -rf $PFSD_VERSION* && \
     rm -rf PolarDB-FileSystem-$PFSD_VERSION*
-
-# add software repository of Node.js LTS
-# @see https://github.com/nodesource/distributions
-# use yarn for documentation development
-# RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
-#     apt install -y nodejs && \
-#     apt clean -y && \
-#     corepack enable && corepack prepare yarn@stable --activate
 
 # create default user
 ENV USER_NAME=postgres

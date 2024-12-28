@@ -18,7 +18,7 @@ RUN apt update -y && \
     apt upgrade -y && \
     apt clean -y
 
-# GCC (force 10) and LLVM (force to 15)
+# GCC (force 10) and LLVM (force 15)
 RUN apt install -y \
         gcc-10 \
         g++-10 \

@@ -7,6 +7,8 @@
 - `ubuntu24.04`: use [`ubuntu:24.04`](https://hub.docker.com/_/ubuntu/tags) as base OS
 - `ubuntu22.04`: use [`ubuntu:22.04`](https://hub.docker.com/_/ubuntu/tags) as base OS
 - `ubuntu20.04`: use [`ubuntu:20.04`](https://hub.docker.com/_/ubuntu/tags) as base OS
+- `debian12`: use [`debian:12`](https://hub.docker.com/_/debian/tags) as base OS
+- `debian11`: use [`debian:11`](https://hub.docker.com/_/debian/tags) as base OS
 - `rocky9`: use [`rockylinux:9`](https://hub.docker.com/_/rockylinux/tags) as base OS
 - `rocky8`: use [`rockylinux:8`](https://hub.docker.com/_/rockylinux/tags) as base OS
 - `anolis8`: use [`openanolis/anolisos:8.6`](https://hub.docker.com/r/openanolis/anolisos/tags) as base OS

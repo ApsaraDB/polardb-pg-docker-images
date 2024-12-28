@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        base_image: [ anolis8, rocky8, rocky9, ubuntu20.04, ubuntu22.04, ubuntu24.04 ]
+        base_image: [ anolis8, rocky8, rocky9, ubuntu20.04, ubuntu22.04, ubuntu24.04, debian11, debian12 ]
     steps:
       # Checkout source code
       - uses: actions/checkout@v4
