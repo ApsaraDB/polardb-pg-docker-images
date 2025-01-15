@@ -19,3 +19,5 @@ COPY --from=building /home/postgres/PolarDB-for-PostgreSQL/src/backend/utils/mis
 
 RUN sudo chown -R postgres:postgres /u01/polardb_pg/
 RUN sudo chmod -R 700 /u01/polardb_pg/
+
+ENV PATH="/u01/polardb_pg/bin:$PATH"
