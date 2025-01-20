@@ -15,7 +15,6 @@ LABEL maintainer="mrdrivingduck@gmail.com"
 
 # Copy binary
 COPY --from=building /u01/polardb_pg/ /u01/polardb_pg/
-COPY --from=building /home/postgres/PolarDB-for-PostgreSQL/src/backend/utils/misc/polardb.conf.sample /u01/polardb_pg/share
 
 RUN sudo chown -R postgres:postgres /u01/polardb_pg/
 RUN sudo chmod -R 700 /u01/polardb_pg/

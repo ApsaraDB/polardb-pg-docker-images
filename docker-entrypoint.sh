@@ -38,7 +38,7 @@ function init_primary() {
     initdb_flag+=" -D $primary_dir --wal-segsize=16 ${extra_initdb_flag-}"
     info "Begin initdb, flag: $initdb_flag"
     eval "initdb $initdb_flag"
-    cat /u01/polardb_pg/share/polardb.conf.sample >> $primary_dir/postgresql.conf
+    cat /u01/polardb_pg/share/postgresql/polardb.conf.sample >> $primary_dir/postgresql.conf
     echo "port = $port" >> $primary_dir/postgresql.conf
     echo "polar_datadir = 'file-dio://$data_dir'" >> $primary_dir/postgresql.conf
 
