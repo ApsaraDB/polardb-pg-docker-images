@@ -1,6 +1,8 @@
 FROM polardb/polardb_pg_devel:ubuntu22.04 AS building
 LABEL maintainer="mrdrivingduck@gmail.com"
 
+ENV PATH="/u01/polardb_pg/bin:$PATH"
+
 # Copy source code
 WORKDIR /home/postgres/
 COPY ./PolarDB-for-PostgreSQL ./PolarDB-for-PostgreSQL
@@ -10,6 +12,15 @@ USER root
 WORKDIR /home/postgres/PolarDB-for-PostgreSQL
 RUN COPT="-Wno-error ${COPT-}" \
     ./build.sh --ec="--prefix=/u01/polardb_pg/ --with-pfsd" --debug=off --ni --port=5432
+
+# Install PostGIS
+WORKDIR /home/postgres
+RUN wget --no-verbose https://download.osgeo.org/postgis/source/postgis-3.5.2.tar.gz && \
+    tar -zxf postgis-3.5.2.tar.gz && \
+    cd postgis-3.5.2 && \
+    ./configure -q && \
+    make -s -j$(nproc) && \
+    make -s install
 
 FROM polardb/polardb_pg_devel:ubuntu22.04
 LABEL maintainer="mrdrivingduck@gmail.com"
