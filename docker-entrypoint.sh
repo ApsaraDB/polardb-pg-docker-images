@@ -28,6 +28,8 @@ primary_datadir="$polar_data_dir/primary_datadir"
 replica_datadir="$polar_data_dir/replica_datadir"
 shared_datadir="$polar_data_dir/shared_datadir"
 
+initdb_flag="-k -A trust"
+
 replica_num=1
 
 function init_primary() {
