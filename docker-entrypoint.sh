@@ -47,6 +47,9 @@ function init_primary() {
     # avoid problem if huge page is not enough.
     echo "huge_pages = off" >> $primary_dir/postgresql.conf
 
+    # avoid corruption for local storage.
+    echo "full_page_writes = on" >> $primary_dir/postgresql.conf
+
     echo "host all all 0.0.0.0/0 md5" >> $primary_dir/pg_hba.conf
     mkdir -p $data_dir
     polar-initdb.sh $primary_dir/ $data_dir/ primary localfs
