@@ -1,4 +1,4 @@
-FROM rockylinux:8
+FROM rockylinux/rockylinux:8
 
 ARG TARGETARCH
 LABEL maintainer="mrdrivingduck@gmail.com"

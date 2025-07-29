@@ -1,4 +1,4 @@
-FROM rockylinux/rockylinux:9
+FROM rockylinux/rockylinux:10
 
 ARG TARGETARCH
 LABEL maintainer="mrdrivingduck@gmail.com"
@@ -19,14 +19,14 @@ RUN dnf distro-sync -y && \
         && \
     dnf clean all
 
-# GCC (should be 13) and LLVM (should be 17)
+# GCC (should be 14) and LLVM (should be 19)
 RUN dnf install -y \
-        gcc \
-        gcc-c++ \
+        gcc-14* \
+        gcc-c++-14* \
         gdb \
         cmake \
-        clang \
-        llvm-devel \
+        clang-19* \
+        llvm-devel-19* \
         && \
     dnf clean all
 
@@ -112,6 +112,7 @@ RUN cd /usr/local && \
     tar xpf $PFSD_VERSION.tar && \
     cd PolarDB-FileSystem-$PFSD_VERSION && \
     sed -i 's/-march=native //' CMakeLists.txt && \
+    sed -i '/-Wno-error=attributes/a\  -Wno-error=calloc-transposed-args' CMakeLists.txt && \
     ./autobuild.sh && ./install.sh && \
     cd .. && \
     rm -rf $PFSD_VERSION* && \
