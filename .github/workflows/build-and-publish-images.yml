@@ -9,9 +9,10 @@ jobs:
   build-and-publish-image:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: recursive
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: get submodule version
         id: version
