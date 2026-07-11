@@ -1,4 +1,4 @@
-FROM rockylinux/rockylinux:10
+FROM ubuntu:26.04
 
 ARG TARGETARCH
 LABEL maintainer="mrdrivingduck@gmail.com"
@@ -9,90 +9,100 @@ CMD bash
 
 ENV PATH="/home/postgres/tmp_polardb_pg_17_base/bin:/home/postgres/tmp_polardb_pg_16_base/bin:/home/postgres/tmp_polardb_pg_15_base/bin:/home/postgres/tmp_basedir_polardb_pg_1100_bld/bin:$PATH"
 
-# install EPEL
-RUN dnf distro-sync -y && \
-    dnf upgrade --refresh && \
-    dnf install -y epel-release && \
-    dnf install -y \
-        glibc-langpack-en \
-        glibc-langpack-zh \
-        && \
-    dnf clean all
+# Timezone problem
+ENV TZ=Asia/Shanghai
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-# GCC (should be 14) and LLVM (should be 19)
-RUN dnf install -y \
-        gcc \
-        gcc-c++ \
+# Upgrade softwares
+RUN apt update -y && \
+    apt upgrade -y && \
+    apt clean -y
+
+# GCC (force 14) and LLVM (force 17)
+RUN apt install -y \
+        gcc-14 \
+        g++-14 \
+        llvm-17-dev \
+        clang-17 \
+        make \
         gdb \
-        cmake \
-        alternatives \
-        clang19 \
-        llvm19-devel \
-        && \
-    alternatives --install \
-        /usr/bin/clang clang /usr/bin/clang-19 60 --slave \
-        /usr/bin/clang++ clang++ /usr/bin/clang++-19 && \
-    alternatives --install \
-        /usr/bin/llvm-config llvm-config /usr/bin/llvm-config-19 60 && \
-    dnf clean all
+        pkg-config \
+        locales && \
+    update-alternatives --install \
+        /usr/bin/gcc gcc /usr/bin/gcc-14 60 --slave \
+        /usr/bin/g++ g++ /usr/bin/g++-14 && \
+    update-alternatives --install \
+        /usr/bin/llvm-config llvm-config /usr/bin/llvm-config-17 60 --slave \
+        /usr/bin/clang++ clang++ /usr/bin/clang++-17 --slave \
+        /usr/bin/clang clang /usr/bin/clang-17 && \
+    apt clean -y
+# Generate locale
+RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
+    sed -i '/zh_CN/s/^# //g' /etc/locale.gen && \
+    locale-gen
 
 # Dependencies
-RUN dnf install -y \
+RUN DEBIAN_FRONTEND=noninteractive \
+    apt install -y \
         bison \
         flex \
         gettext \
-        krb5-devel \
-        krb5-server \
-        krb5-workstation \
-        libaio-devel \
-        libicu-devel \
-        libunwind-devel \
-        libuuid-devel \
-        libxml2-devel \
-        libxslt-devel \
-        libzstd-devel \
-        lz4-devel \
-        openldap-devel \
-        openssl-devel \
-        pam-devel \
-        perl-CPAN \
-        perl-DBI \
-        perl-ExtUtils-Embed \
-        perl-Test-Simple \
-        python3-devel \
-        readline-devel \
-        tcl-devel \
-        xerces-c-devel \
-        zlib-devel \
+        krb5-admin-server \
+        krb5-kdc \
+        krb5-user \
+        libaio-dev \
+        libdbi-perl \
+        libexpect-perl \
+        libfile-find-rule-perl \
+        libfuse-dev \
+        libgss-dev \
+        libicu-dev \
+        libipc-run-perl \
+        libkrb5-dev \
+        libldap2-dev \
+        liblz4-dev \
+        libpam0g-dev \
+        libperl-dev \
+        libreadline-dev \
+        libssl-dev \
+        libunwind-dev \
+        libxerces-c-dev \
+        libxml2-dev \
+        libxslt1-dev \
+        python3-dev \
+        python3-distutils-extra \
+        tcl-dev \
+        uuid-dev \
         && \
-    dnf --enablerepo=crb install -y \
-        fuse-devel \
-        perl-File-Find-Rule \
-        perl-FindBin \
-        perl-IPC-Run \
-        perl-Opcode \
-        && \
-    dnf clean all
+    apt clean -y
 
 # Tools
-RUN dnf install -y \
+RUN apt install -y \
         autoconf \
-        chkconfig \
-        iproute \
+        iproute2 \
         wget \
+        ccache \
         sudo \
         vim \
         git \
-        rpm-build \
-        && \
-    dnf clean all
+        cmake && \
+    apt clean -y
+
+# PostGIS
+RUN apt install -y \
+        libgeos-dev \
+        libproj-dev \
+        libgdal-dev \
+        libprotobuf-c-dev \
+        protobuf-compiler \
+        protobuf-c-compiler && \
+    apt clean -y
 
 # install perl module for TAP test
-RUN perl -MCPAN -e "CPAN::Shell->notest('install', 'Expect')" && \
-    perl -MCPAN -e "CPAN::Shell->notest('install', 'SHANCOCK/Perl-Tidy-20230309.tar.gz')"
+RUN perl -MCPAN -e "CPAN::Shell->notest('install', 'SHANCOCK/Perl-Tidy-20230309.tar.gz')"
 
 # set to empty if GitHub is not barriered
-# ENV GITHUB_PROXY=https://ghproxy.com/
+# ENV GITHUB_PROXY=https://gh-proxy.com/
 ENV GITHUB_PROXY=
 
 ENV ZLOG_VERSION=1.2.14
@@ -117,22 +127,23 @@ RUN cd /usr/local && \
     gzip -d $PFSD_VERSION.tar.gz && \
     tar xpf $PFSD_VERSION.tar && \
     cd PolarDB-FileSystem-$PFSD_VERSION && \
+    sed -i 's/cmake_minimum_required (VERSION 2.8)/cmake_minimum_required (VERSION 3.5)/' CMakeLists.txt && \
     sed -i 's/-march=native //' CMakeLists.txt && \
     sed -i '/-Wno-error=attributes/a\  -Wno-error=calloc-transposed-args' CMakeLists.txt && \
     ./autobuild.sh && ./install.sh && \
     cd .. && \
     rm -rf $PFSD_VERSION* && \
-    rm -rf PolarDB-FileSystem-$PFSD_VERSION* && \
-    ldconfig
+    rm -rf PolarDB-FileSystem-$PFSD_VERSION*
 
 # create default user
 ENV USER_NAME=postgres
 RUN echo "create default user" && \
-    groupadd -r $USER_NAME -g 1000 && \
-    useradd -u 1000 -g $USER_NAME $USER_NAME -p '' && \
-    usermod -aG wheel $USER_NAME
-
-WORKDIR /home/$USER_NAME
+    deluser ubuntu && \
+    groupadd -r $USER_NAME && \
+    useradd -u 1000 -ms /bin/bash -g $USER_NAME $USER_NAME -p '' && \
+    usermod -aG sudo $USER_NAME && \
+    echo "$USER_NAME ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/$USER_NAME && \
+    chmod 0440 /etc/sudoers.d/$USER_NAME
 
 # modify conf
 RUN echo "modify conf" && \
@@ -141,15 +152,12 @@ RUN echo "modify conf" && \
     mkdir -p /var/run/pfsd && chown $USER_NAME /var/run/pfsd && \
     mkdir -p /dev/shm/pfsd && chown $USER_NAME /dev/shm/pfsd && \
     touch /var/run/pfsd/.pfsd && \
-    chkconfig --add pfsd_env && \
     echo "ulimit -c unlimited" >> /home/postgres/.bashrc && \
     echo "export PGHOST=127.0.0.1" >> /home/postgres/.bashrc && \
     echo "export PATH=/home/postgres/tmp_polardb_pg_15_base/bin:\$PATH" >> /home/postgres/.bashrc && \
     echo "export PATH=/home/postgres/tmp_polardb_pg_16_base/bin:\$PATH" >> /home/postgres/.bashrc && \
     echo "export PATH=/home/postgres/tmp_polardb_pg_17_base/bin:\$PATH" >> /home/postgres/.bashrc && \
-    rm /etc/localtime && \
-    cp /usr/share/zoneinfo/UTC /etc/localtime && \
-    sed -i 's/vim/vi/g' /root/.bashrc
+    echo 'done'
 
 WORKDIR /home/$USER_NAME
 USER $USER_NAME
