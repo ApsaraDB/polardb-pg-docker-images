@@ -9,7 +9,7 @@ jobs:
   build-and-publish-image:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -27,30 +27,31 @@ jobs:
           echo "pg_majorversion=${pg_majorversion}" >> $GITHUB_OUTPUT
 
       - name: set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
       - name: set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
       - name: login to DockerHub
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: login to the ghcr
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: login to Alibaba Cloud ACR
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: registry.cn-hangzhou.aliyuncs.com
           username: ${{ secrets.ALIBABA_CLOUD_ACR_USERNAME }}
           password: ${{ secrets.ALIBABA_CLOUD_ACR_PASSWORD }}
 
       - name: build and push binary image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
+          provenance: false
           push: true
           file: Dockerfile-binary
           tags: |
@@ -66,8 +67,9 @@ jobs:
           platforms: linux/amd64, linux/arm64
 
       - name: build and push instance image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
+          provenance: false
           push: true
           build-args: |
             binary_image_tag=${{ steps.version.outputs.version }}.${{ steps.version.outputs.sha }}
